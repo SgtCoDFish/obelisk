@@ -1,3 +1,6 @@
 [submodule "vendor/apg"]
 	path = vendor/apg
 	url = https://github.com/SgtCoDFish/APG
+[submodule "vendor/ashleycpp"]
+	path = vendor/ashleycpp
+	url = https://github.com/sgtcodfish/ashleycpp

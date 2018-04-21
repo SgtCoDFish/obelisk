@@ -6,6 +6,7 @@
 #include <chrono>
 #include <vector>
 #include <numeric>
+#include <systems/RenderSystem.hpp>
 
 #include "APG/GL.hpp"
 #include "APG/SDL.hpp"
@@ -16,6 +17,9 @@
 #include "APG/graphics/Camera.hpp"
 
 #include "obelisk.hpp"
+#include "components/RenderableComponent.hpp"
+#include "components/PositionComponent.hpp"
+#include "systems/RenderSystem.hpp"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -43,10 +47,12 @@ bool Obelisk::init() {
 
 	tmxRenderer = std::make_unique<APG::PackedTmxRenderer>("assets/map.tmx", spriteBatch.get(), 2048, 1024);
 	glm::vec2 tmxRendererPos{
-			(this->screenWidth - (tmxRenderer->getPixelWidth() / zoom)),
-			(this->screenHeight - (tmxRenderer->getPixelHeight() / zoom)),
+			(screenWidth * 0.95f - (tmxRenderer->getPixelWidth() / zoom)) * 2.0f,
+			(screenHeight - (tmxRenderer->getPixelHeight() / zoom)),
 	};
 	tmxRenderer->setPosition(tmxRendererPos);
+
+	packAssets(logger);
 
 	auto glError = glGetError();
 	if (glError != GL_NO_ERROR) {
@@ -58,22 +64,79 @@ bool Obelisk::init() {
 		return false;
 	}
 
+	initECS(logger);
+
 	return true;
+}
+
+void Obelisk::packAssets(el::Logger *logger) {
+	packedAssets = std::make_unique<APG::PackedTexture>(1024, 1024);
+	auto maybeAnimals = packedAssets->insertFile("assets/animals.png");
+
+	if (!maybeAnimals) {
+		logger->fatal("Couldn't pack required animal assets.");
+		return;
+	}
+	auto maybeCards = packedAssets->insertFile("assets/cards.png");
+
+	if (!maybeCards) {
+		logger->fatal("Couldn't pack required card assets.");
+		return;
+	}
+
+	packedAssets->commitPack();
+
+	this->animalPackRect = *maybeAnimals;
+	this->cardPackRect = *maybeCards;
+
+	animal = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 3), animalPackRect.y + 64, 64, 64});
+
+	blueCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 0, cardPackRect.y + 0, 140, 190});
+	redCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 140, cardPackRect.y + 0, 140, 190});
+	greenCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 280, cardPackRect.y + 0, 140, 190});
+
+	towerSprite = tmxRenderer->getPackedTexture()->makeSpritePtr({19*64, 7*64, 64, 64});
+}
+
+void Obelisk::initECS(el::Logger *logger) {
+	const auto rendererPos = tmxRenderer->getPosition();
+
+	auto testMonster = engine->addEntity();
+
+	testMonster->add<PositionComponent>(rendererPos.x + tmxRenderer->getPixelWidth(),
+										rendererPos.y + (tmxRenderer->getPixelHeight() - animal->getHeight()) / 2.0f);
+	testMonster->add<RenderableComponent>(animal.get());
+
+	auto towerObjects = tmxRenderer->getObjectGroup("towers");
+
+	for(const auto &object : towerObjects) {
+		auto tower = engine->addEntity();
+		auto towerPos = object.position + rendererPos;
+		tower->add<PositionComponent>(towerPos);
+		tower->add<RenderableComponent>(towerSprite.get());
+	}
+
+	engine->addSystem<RenderSystem>(spriteBatch.get(), 1000);
 }
 
 void Obelisk::render(float deltaTime) {
 	glClearColor(0.18f, 0.80f, 0.44f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	//camera->position.x = cameraX + screenWidth / 2.0f;
-	//camera->position.y = cameraY + screenHeight / 2.0f;
-
 	camera->update();
 	spriteBatch->setProjectionMatrix(camera->combinedMatrix);
 
 	tmxRenderer->renderAllAndUpdate(deltaTime);
 
+	engine->update(deltaTime);
+
 	SDL_GL_SwapWindow(window.get());
+}
+
+Obelisk::Obelisk(const std::string &windowTitle, uint32_t windowWidth, uint32_t windowHeight, uint32_t glContextMajor,
+				 uint32_t glContextMinor, uint32_t windowX, uint32_t windowY) :
+		SDLGame(windowTitle, windowWidth, windowHeight, glContextMajor, glContextMinor, windowX, windowY),
+		engine{std::make_unique<ashley::Engine>()} {
 }
 
 }
@@ -110,8 +173,8 @@ void loop(void *v_arg) {
 int main(int argc, char *argv[]) {
 	START_EASYLOGGINGPP(argc, argv);
 
-	const std::string windowTitle("APG GLTmxRenderer Example");
-	const uint32_t windowWidth = 640;
+	const std::string windowTitle("obelisk");
+	const uint32_t windowWidth = 800;
 	const uint32_t windowHeight = 480;
 
 	const auto logger = el::Loggers::getLogger("obelisk");
