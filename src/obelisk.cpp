@@ -8,6 +8,8 @@
 #include <numeric>
 #include <systems/RenderSystem.hpp>
 #include <components/TowerComponent.hpp>
+#include <systems/CarrySystem.hpp>
+#include <systems/DeathSystem.hpp>
 
 #include "APG/GL.hpp"
 #include "APG/SDL.hpp"
@@ -54,6 +56,8 @@ bool Obelisk::init() {
 	};
 	tmxRenderer->setPosition(tmxRendererPos);
 
+	state = std::make_unique<ObeliskState>();
+
 	packAssets(logger);
 
 	auto glError = glGetError();
@@ -73,16 +77,22 @@ bool Obelisk::init() {
 
 void Obelisk::packAssets(el::Logger *logger) {
 	packedAssets = std::make_unique<APG::PackedTexture>(1024, 1024);
-	auto maybeAnimals = packedAssets->insertFile("assets/animals.png");
 
+	auto maybeAnimals = packedAssets->insertFile("assets/animals.png");
 	if (!maybeAnimals) {
 		logger->fatal("Couldn't pack required animal assets.");
 		return;
 	}
-	auto maybeCards = packedAssets->insertFile("assets/cards.png");
 
+	auto maybeCards = packedAssets->insertFile("assets/cards.png");
 	if (!maybeCards) {
 		logger->fatal("Couldn't pack required card assets.");
+		return;
+	}
+
+	auto maybeSmallCards = packedAssets->insertFile("assets/cards_small.png");
+	if (!maybeSmallCards) {
+		logger->fatal("Couldn't pack required small card assets.");
 		return;
 	}
 
@@ -90,12 +100,17 @@ void Obelisk::packAssets(el::Logger *logger) {
 
 	this->animalPackRect = *maybeAnimals;
 	this->cardPackRect = *maybeCards;
+	this->smallCardPackRect = *maybeSmallCards;
 
 	animal = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 3), animalPackRect.y + 64, 64, 64});
 
 	blueCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 0, cardPackRect.y + 0, 140, 190});
 	redCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 140, cardPackRect.y + 0, 140, 190});
 	greenCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 280, cardPackRect.y + 0, 140, 190});
+
+	smallBlueCardBack = packedAssets->makeSpritePtr({smallCardPackRect.x + 0, smallCardPackRect.y + 0, 28, 38});
+	smallRedCardBack = packedAssets->makeSpritePtr({smallCardPackRect.x + 28, smallCardPackRect.y + 0, 28, 38});
+	smallGreenCardBack = packedAssets->makeSpritePtr({smallCardPackRect.x + 56, smallCardPackRect.y + 0, 28, 38});
 
 	towerSprite = tmxRenderer->getPackedTexture()->makeSpritePtr({19 * 64, 7 * 64, 64, 64});
 }
@@ -118,22 +133,30 @@ void Obelisk::initECS(el::Logger *logger) {
 		renderable->visible = false;
 
 		tower->add<PositionComponent>(object.position.x + rendererPos.x, object.position.y + rendererPos.y);
+		tower->add<ClickableComponent>(SDL_Rect{0, 0, renderable->sprite->getWidth(), renderable->sprite->getHeight()});
+		tower->add<TowerComponent>(object.name);
 		tower->add(std::move(renderable));
-		tower->add<TowerComponent>();
 	}
 
 	auto displayedCard = engine->addEntity();
 	displayedCard->add<PositionComponent>(10, 10);
 	displayedCard->add<RenderableComponent>(redCardBack.get());
 	displayedCard->add<ClickableComponent>(SDL_Rect{0, 0, redCardBack->getWidth(), redCardBack->getHeight()});
+	displayedCard->add<CarryableComponent>(smallRedCardBack.get());
 
 	engine->addSystem<RenderSystem>(spriteBatch.get(), 1000);
-	playerInputSystem = engine->addSystem<PlayerInputSystem>(5000, inputManager.get(), camera.get());
+	engine->addSystem<CarrySystem>(inputManager.get(), 2500);
+	playerInputSystem = engine->addSystem<PlayerInputSystem>(5000, inputManager.get(), camera.get(), state.get());
+	engine->addSystem<DeathSystem>(1000000);
 }
 
 void Obelisk::render(float deltaTime) {
 	glClearColor(0.18f, 0.80f, 0.44f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+
+	if(inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE)) {
+		//el::Loggers::getLogger("obelisk")->info("Mouse (x, y) = (%v, %v)", );
+	}
 
 	camera->update();
 	spriteBatch->setProjectionMatrix(camera->combinedMatrix);
@@ -172,11 +195,11 @@ void loop(void *v_arg) {
 
 	arg->done = arg->game->update(deltaTime);
 
-	if (arg->timesTaken.size() >= 1000) {
+	if (arg->timesTaken.size() >= 500) {
 		const float sum = std::accumulate(arg->timesTaken.begin(), arg->timesTaken.end(), 0.0f);
 		const float fps = 1 / (sum / arg->timesTaken.size());
 
-		arg->logger->info("FPS: ", fps);
+		arg->logger->info("FPS: %v", fps);
 
 		arg->timesTaken.clear();
 	}

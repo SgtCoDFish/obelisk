@@ -25,6 +25,8 @@
 
 #include "Ashley/Ashley.hpp"
 
+#include "ObeliskState.hpp"
+
 namespace obelisk {
 class PlayerInputSystem;
 
@@ -49,6 +51,8 @@ private:
 	std::unique_ptr<ashley::Engine> engine;
 	PlayerInputSystem * playerInputSystem {nullptr};
 
+	std::unique_ptr<ObeliskState> state;
+
 	std::unique_ptr<APG::ShaderProgram> shaderProgram;
 
 	std::unique_ptr<APG::Camera> camera;
@@ -57,12 +61,17 @@ private:
 	std::unique_ptr<APG::PackedTexture> packedAssets;
 	SDL_Rect animalPackRect; // the packed location of the animal asset file
 	SDL_Rect cardPackRect; // the packed location of the card asset file
+	SDL_Rect smallCardPackRect; // the packed location of the small card asset file
 
 	std::unique_ptr<APG::Sprite> animal;
+	std::unique_ptr<APG::Sprite> towerSprite;
+
 	std::unique_ptr<APG::Sprite> blueCardBack;
 	std::unique_ptr<APG::Sprite> redCardBack;
 	std::unique_ptr<APG::Sprite> greenCardBack;
-	std::unique_ptr<APG::Sprite> towerSprite;
+	std::unique_ptr<APG::Sprite> smallBlueCardBack;
+	std::unique_ptr<APG::Sprite> smallRedCardBack;
+	std::unique_ptr<APG::Sprite> smallGreenCardBack;
 
 	std::unique_ptr<APG::PackedTmxRenderer> tmxRenderer;
 };

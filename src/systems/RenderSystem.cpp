@@ -1,5 +1,6 @@
 #include <Ashley/Ashley.hpp>
 #include <APG/graphics/SpriteBatch.hpp>
+#include <components/CarriedComponent.hpp>
 
 #include "systems/RenderSystem.hpp"
 
@@ -19,7 +20,14 @@ void RenderSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 	auto renderable = ashley::ComponentMapper<RenderableComponent>::getMapper().get(entity);
 
 	if (renderable->visible) {
-		batch->draw(renderable->sprite, position->position.x, position->position.y);
+		auto sprite = renderable->sprite;
+
+		auto carried = ashley::ComponentMapper<CarriedComponent>::getMapper().get(entity);
+		if (carried != nullptr) {
+			sprite = carried->smallSprite;
+		}
+
+		batch->draw(sprite, position->position.x, position->position.y);
 	}
 }
 
