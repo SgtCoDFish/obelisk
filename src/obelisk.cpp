@@ -7,6 +7,7 @@
 #include <vector>
 #include <numeric>
 #include <systems/RenderSystem.hpp>
+#include <components/TowerComponent.hpp>
 
 #include "APG/GL.hpp"
 #include "APG/SDL.hpp"
@@ -20,6 +21,7 @@
 #include "components/RenderableComponent.hpp"
 #include "components/PositionComponent.hpp"
 #include "systems/RenderSystem.hpp"
+#include "systems/PlayerInputSystem.hpp"
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -95,7 +97,7 @@ void Obelisk::packAssets(el::Logger *logger) {
 	redCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 140, cardPackRect.y + 0, 140, 190});
 	greenCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 280, cardPackRect.y + 0, 140, 190});
 
-	towerSprite = tmxRenderer->getPackedTexture()->makeSpritePtr({19*64, 7*64, 64, 64});
+	towerSprite = tmxRenderer->getPackedTexture()->makeSpritePtr({19 * 64, 7 * 64, 64, 64});
 }
 
 void Obelisk::initECS(el::Logger *logger) {
@@ -109,14 +111,24 @@ void Obelisk::initECS(el::Logger *logger) {
 
 	auto towerObjects = tmxRenderer->getObjectGroup("towers");
 
-	for(const auto &object : towerObjects) {
+	for (const auto &object : towerObjects) {
 		auto tower = engine->addEntity();
-		auto towerPos = object.position + rendererPos;
-		tower->add<PositionComponent>(towerPos);
-		tower->add<RenderableComponent>(towerSprite.get());
+
+		auto renderable = std::make_unique<RenderableComponent>(towerSprite.get());
+		renderable->visible = false;
+
+		tower->add<PositionComponent>(object.position.x + rendererPos.x, object.position.y + rendererPos.y);
+		tower->add(std::move(renderable));
+		tower->add<TowerComponent>();
 	}
 
+	auto displayedCard = engine->addEntity();
+	displayedCard->add<PositionComponent>(10, 10);
+	displayedCard->add<RenderableComponent>(redCardBack.get());
+	displayedCard->add<ClickableComponent>(SDL_Rect{0, 0, redCardBack->getWidth(), redCardBack->getHeight()});
+
 	engine->addSystem<RenderSystem>(spriteBatch.get(), 1000);
+	playerInputSystem = engine->addSystem<PlayerInputSystem>(5000, inputManager.get(), camera.get());
 }
 
 void Obelisk::render(float deltaTime) {
@@ -177,6 +189,7 @@ int main(int argc, char *argv[]) {
 	const uint32_t windowWidth = 800;
 	const uint32_t windowHeight = 480;
 
+	APG::Game::setLoggerToAPGStyle("obelisk");
 	const auto logger = el::Loggers::getLogger("obelisk");
 	auto game = std::make_unique<obelisk::Obelisk>(windowTitle, windowWidth, windowHeight);
 

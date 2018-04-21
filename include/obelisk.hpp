@@ -26,6 +26,7 @@
 #include "Ashley/Ashley.hpp"
 
 namespace obelisk {
+class PlayerInputSystem;
 
 class Obelisk final : public APG::SDLGame {
 public:
@@ -46,6 +47,7 @@ private:
 	void packAssets(el::Logger * logger);
 
 	std::unique_ptr<ashley::Engine> engine;
+	PlayerInputSystem * playerInputSystem {nullptr};
 
 	std::unique_ptr<APG::ShaderProgram> shaderProgram;
 

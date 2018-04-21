@@ -11,6 +11,8 @@ public:
 	explicit RenderableComponent(APG::SpriteBase * sprite);
 
 	APG::SpriteBase * sprite;
+
+	bool visible {true};
 };
 
 }
