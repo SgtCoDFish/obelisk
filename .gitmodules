@@ -1,0 +1,3 @@
+[submodule "vendor/apg"]
+	path = vendor/apg
+	url = https://github.com/SgtCoDFish/APG

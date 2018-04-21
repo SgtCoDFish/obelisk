@@ -36,3 +36,5 @@ dlls/*
 dlls
 
 build*/
+
+assets/tmp
