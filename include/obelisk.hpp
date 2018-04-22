@@ -66,6 +66,7 @@ private:
 	SDL_Rect animalPackRect; // the packed location of the giraffe asset file
 	SDL_Rect cardPackRect; // the packed location of the card asset file
 	SDL_Rect smallCardPackRect; // the packed location of the small card asset file
+	SDL_Rect trashPackRect; // the packed location of the trash asset file
 
 	std::unique_ptr<APG::Sprite> monkey;
 	std::unique_ptr<APG::Sprite> rabbit;
@@ -73,7 +74,15 @@ private:
 	std::unique_ptr<APG::Sprite> pig;
 	std::unique_ptr<APG::Sprite> giraffe;
 
+	std::unique_ptr<APG::Sprite> trashSprite;
+
 	std::unique_ptr<APG::Sprite> towerSprite;
+	std::unique_ptr<APG::Sprite> gunUpgradeSprite;
+	std::unique_ptr<APG::Sprite> rocketUpgradeSprite;
+
+	std::unique_ptr<APG::Sprite> blueCardFront;
+	std::unique_ptr<APG::Sprite> redCardFront;
+	std::unique_ptr<APG::Sprite> greenCardFront;
 
 	std::unique_ptr<APG::Sprite> blueCardBack;
 	std::unique_ptr<APG::Sprite> redCardBack;

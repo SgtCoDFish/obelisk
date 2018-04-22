@@ -8,6 +8,11 @@ class SpriteBase;
 }
 
 namespace obelisk {
+enum class UpgradeType {
+	NONE,
+	TOWER_GUN_UPGRADE,
+	TOWER_ROCKET_UPGRADE
+};
 
 class CarryableComponent final : public ashley::Component {
 public:
@@ -15,7 +20,17 @@ public:
 			smallSprite{smallSprite} {
 	}
 
+	explicit CarryableComponent(APG::SpriteBase *smallSprite, UpgradeType upgradeType, APG::SpriteBase *upgradeSprite)
+			:
+			smallSprite{smallSprite},
+			upgradeType{upgradeType},
+			upgradeSprite{upgradeSprite} {
+	}
+
 	APG::SpriteBase *smallSprite;
+
+	UpgradeType upgradeType{UpgradeType::NONE};
+	APG::SpriteBase *upgradeSprite{nullptr};
 };
 
 }

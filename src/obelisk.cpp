@@ -26,6 +26,9 @@
 #include <systems/EntitySpawnSystem.hpp>
 #include <systems/CarrySystem.hpp>
 #include <systems/DeathSystem.hpp>
+#include <systems/TowerUpgradeSystem.hpp>
+#include <systems/TowerAttackSystem.hpp>
+#include <components/TrashComponent.hpp>
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -104,17 +107,30 @@ void Obelisk::packAssets(el::Logger *logger) {
 		return;
 	}
 
+	auto maybeTrash = packedAssets->insertFile("assets/trashcan.png");
+	if (!maybeTrash) {
+		logger->fatal("Couldn't pack required trashcan assets.");
+		return;
+	}
+
 	packedAssets->commitPack();
 
 	this->animalPackRect = *maybeAnimals;
 	this->cardPackRect = *maybeCards;
 	this->smallCardPackRect = *maybeSmallCards;
+	this->trashPackRect = *maybeTrash;
+
+	trashSprite = packedAssets->makeSpritePtr({trashPackRect.x, trashPackRect.y, 100, 100});
 
 	monkey = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 0), animalPackRect.y + (64 * 0), 64, 64});
 	rabbit = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 1), animalPackRect.y + (64 * 0), 64, 64});
 	snake = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 0), animalPackRect.y + (64 * 3), 64, 64});
 	pig = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 1), animalPackRect.y + (64 * 3), 64, 64});
 	giraffe = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 3), animalPackRect.y + (64 * 1), 64, 64});
+
+	blueCardFront = packedAssets->makeSpritePtr({cardPackRect.x + 0, cardPackRect.y + 190, 140, 190});
+	redCardFront = packedAssets->makeSpritePtr({cardPackRect.x + 140, cardPackRect.y + 190, 140, 190});
+	greenCardFront = packedAssets->makeSpritePtr({cardPackRect.x + 280, cardPackRect.y + 190, 140, 190});
 
 	blueCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 0, cardPackRect.y + 0, 140, 190});
 	redCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 140, cardPackRect.y + 0, 140, 190});
@@ -125,6 +141,8 @@ void Obelisk::packAssets(el::Logger *logger) {
 	smallGreenCardBack = packedAssets->makeSpritePtr({smallCardPackRect.x + 56, smallCardPackRect.y + 0, 28, 38});
 
 	towerSprite = map->renderer->getPackedTexture()->makeSpritePtr({19 * 64, 7 * 64, 64, 64});
+	gunUpgradeSprite = map->renderer->getPackedTexture()->makeSpritePtr({19 * 64, 10 * 64, 64, 64});
+	rocketUpgradeSprite = map->renderer->getPackedTexture()->makeSpritePtr({20 * 64, 8 * 64, 64, 64});
 }
 
 void Obelisk::initECS(el::Logger *logger) {
@@ -148,9 +166,27 @@ void Obelisk::initECS(el::Logger *logger) {
 
 	auto displayedCard = engine->addEntity();
 	displayedCard->add<PositionComponent>(10, 10);
-	displayedCard->add<RenderableComponent>(redCardBack.get());
-	displayedCard->add<ClickableComponent>(SDL_Rect{0, 0, redCardBack->getWidth(), redCardBack->getHeight()});
-	displayedCard->add<CarryableComponent>(smallRedCardBack.get());
+	displayedCard->add<RenderableComponent>(redCardFront.get(), gunUpgradeSprite.get());
+	displayedCard->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
+	displayedCard->add<CarryableComponent>(smallRedCardBack.get(), UpgradeType::TOWER_GUN_UPGRADE,
+										   gunUpgradeSprite.get());
+
+	auto displayedCard2 = engine->addEntity();
+	displayedCard2->add<PositionComponent>(10 * 2 + blueCardFront->getWidth(), 10);
+	displayedCard2->add<RenderableComponent>(blueCardFront.get(), rocketUpgradeSprite.get());
+	displayedCard2->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
+	displayedCard2->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_ROCKET_UPGRADE,
+											rocketUpgradeSprite.get());
+
+	{
+		auto trashEntity = engine->addEntity();
+		auto trashRenderable = std::make_unique<RenderableComponent>(trashSprite.get());
+		trashEntity->add<PositionComponent>((screenWidth - rendererPos.x),
+											(screenHeight - trashSprite->getHeight()) * 2);
+		trashEntity->add<TrashComponent>();
+		trashEntity->add<ClickableComponent>(SDL_Rect{0, 0, trashSprite->getWidth(), trashSprite->getHeight()});
+		trashEntity->add(std::move(trashRenderable));
+	}
 
 	engine->addSystem<EntitySpawnSystem>(
 			500, 7.5f, state.get(),
@@ -162,6 +198,8 @@ void Obelisk::initECS(el::Logger *logger) {
 	engine->addSystem<CarrySystem>(inputManager.get(), 2500);
 	engine->addSystem<WalkingSystem>(3500, state);
 	playerInputSystem = engine->addSystem<PlayerInputSystem>(5000, inputManager.get(), camera.get(), state);
+	engine->addSystem<TowerUpgradeSystem>(10000);
+	engine->addSystem<TowerAttackSystem>(15000);
 	engine->addSystem<DeathSystem>(1000000);
 }
 

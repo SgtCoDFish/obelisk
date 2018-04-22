@@ -67,7 +67,18 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 		carriedEntity->remove<CarriedComponent>();
 		carriedEntity->add<DeathComponent>();
 		state->heldItem = nullptr;
-		return false;
+		return true;
+	}
+
+	const auto trash = trashMapper.get(entity);
+
+	if(trash != nullptr) {
+		el::Loggers::getLogger("obelisk")->info("Card trashed");
+
+		auto carriedEntity = state->heldItem;
+		carriedEntity->add<DeathComponent>();
+		state->heldItem = nullptr;
+		return true;
 	}
 
 	return false;

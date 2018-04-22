@@ -6,11 +6,12 @@
 #include <Ashley/systems/IteratingSystem.hpp>
 #include <Ashley/core/ComponentMapper.hpp>
 
+#include <ObeliskState.hpp>
 #include <components/PositionComponent.hpp>
 #include <components/ClickableComponent.hpp>
-#include <ObeliskState.hpp>
 #include <components/CarryableComponent.hpp>
 #include <components/TowerComponent.hpp>
+#include <components/TrashComponent.hpp>
 
 namespace APG {
 class SDLInputManager;
@@ -48,6 +49,7 @@ private:
 	ashley::ComponentMapper<ClickableComponent> clickableMapper{ashley::ComponentMapper<ClickableComponent>::getMapper()};
 	ashley::ComponentMapper<CarryableComponent> carryableMapper{ashley::ComponentMapper<CarryableComponent>::getMapper()};
 	ashley::ComponentMapper<TowerComponent> towerMapper{ashley::ComponentMapper<TowerComponent>::getMapper()};
+	ashley::ComponentMapper<TrashComponent> trashMapper{ashley::ComponentMapper<TrashComponent>::getMapper()};
 };
 
 }

@@ -20,18 +20,29 @@ void RenderSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 	if (renderable->visible) {
 		auto sprite = renderable->sprite;
 
+		bool renderSmall = true;
+
 		auto carried = ashley::ComponentMapper<CarriedComponent>::getMapper().get(entity);
 		if (carried != nullptr) {
 			sprite = carried->smallSprite;
+			renderSmall = false;
 		}
 
 		if (color != nullptr) {
 			auto origColor = batch->getColor();
 			batch->setColor(color->color);
 			batch->draw(sprite, position->position.x, position->position.y);
+			if (renderable->secondary != nullptr && renderSmall) {
+				batch->draw(renderable->secondary, renderable->secondaryPos.x + position->position.x,
+							renderable->secondaryPos.y + position->position.y);
+			}
 			batch->setColor(origColor);
 		} else {
 			batch->draw(sprite, position->position.x, position->position.y);
+			if (renderable->secondary != nullptr && renderSmall) {
+				batch->draw(renderable->secondary, renderable->secondaryPos.x + position->position.x,
+							renderable->secondaryPos.y + position->position.y);
+			}
 		}
 	}
 }
