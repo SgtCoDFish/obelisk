@@ -91,8 +91,8 @@ set(VENDOR_INCLUDE_DIRS
         ${VENDOR_ASHLEYCPP_INCLUDE_DIRS}
         )
 
-set(OBELISK_HEADERS include/obelisk.hpp include/components/PositionComponent.hpp include/components/RenderableComponent.hpp include/systems/RenderSystem.hpp include/ObeliskCard.hpp include/components/TowerComponent.hpp include/systems/PlayerInputSystem.hpp include/components/ClickableComponent.hpp include/ObeliskState.hpp include/components/CarriedComponent.hpp include/components/CarryableComponent.hpp include/systems/CarrySystem.hpp include/components/DeathComponent.hpp include/systems/DeathSystem.hpp include/components/WalkerComponent.hpp include/components/ColorComponent.hpp)
-set(OBELISK_SOURCES src/obelisk.cpp src/components/PositionComponent.cpp src/components/RenderableComponent.cpp src/systems/RenderSystem.cpp src/ObeliskCard.cpp src/systems/PlayerInputSystem.cpp src/systems/CarrySystem.cpp src/systems/DeathSystem.cpp include/systems/WalkingSystem.hpp src/systems/WalkingSystem.cpp)
+set(OBELISK_HEADERS include/obelisk.hpp include/components/PositionComponent.hpp include/components/RenderableComponent.hpp include/systems/RenderSystem.hpp include/ObeliskCard.hpp include/components/TowerComponent.hpp include/systems/PlayerInputSystem.hpp include/components/ClickableComponent.hpp include/ObeliskState.hpp include/components/CarriedComponent.hpp include/components/CarryableComponent.hpp include/systems/CarrySystem.hpp include/components/DeathComponent.hpp include/systems/DeathSystem.hpp include/components/WalkerComponent.hpp include/components/ColorComponent.hpp include/ObeliskMap.hpp)
+set(OBELISK_SOURCES src/obelisk.cpp src/ObeliskMap.cpp src/components/PositionComponent.cpp src/components/RenderableComponent.cpp src/systems/RenderSystem.cpp src/ObeliskCard.cpp src/systems/PlayerInputSystem.cpp src/systems/CarrySystem.cpp src/systems/DeathSystem.cpp include/systems/WalkingSystem.hpp src/systems/WalkingSystem.cpp)
 
 set(FULL_SOURCES ${OBELISK_SOURCES} ${OBELISK_HEADERS} ${VENDOR_FILES})
 add_definitions(-DELPP_NO_LOG_TO_FILE)
@@ -109,7 +109,7 @@ if (DEFINED WIN32)
         if (MSVC_VERSION GREATER 1800)
             message("Using legacy STDIO fix for MSVC 15.")
             set(OS_LIBS ${OS_LIBS} legacy_stdio_definitions)
-            set(EXTRA_SOURCES ${PROJECT_SOURCE_DIR}/MSVC/vs2015_io_fix.cpp include/components/PositionComponent.hpp)
+            set(EXTRA_SOURCES ${PROJECT_SOURCE_DIR}/MSVC/vs2015_io_fix.cpp include/components/PositionComponent.hpp src/ObeliskMap.cpp)
         endif ()
     else ()
         # MinGW

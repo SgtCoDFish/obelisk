@@ -53,12 +53,18 @@ bool Obelisk::init() {
 	camera->setToOrtho(false, screenWidth, screenHeight);
 	spriteBatch = std::make_unique<APG::SpriteBatch>(shaderProgram.get());
 
-	tmxRenderer = std::make_unique<APG::PackedTmxRenderer>("assets/map.tmx", spriteBatch.get(), 2048, 1024);
-	glm::vec2 tmxRendererPos{
-			(screenWidth * 0.95f - (tmxRenderer->getPixelWidth() / zoom)) * 2.0f,
-			(screenHeight - (tmxRenderer->getPixelHeight() / zoom)),
-	};
-	tmxRenderer->setPosition(tmxRendererPos);
+	{
+		auto tmxRenderer = std::make_unique<APG::PackedTmxRenderer>("assets/map.tmx", spriteBatch.get(), 2048, 1024);
+		glm::vec2 tmxRendererPos{
+				(screenWidth * 0.95f - (tmxRenderer->getPixelWidth() / zoom)) * 2.0f,
+				(screenHeight - (tmxRenderer->getPixelHeight() / zoom)),
+		};
+		tmxRenderer->setPosition(tmxRendererPos);
+
+		map = std::make_unique<ObeliskMap>(std::move(tmxRenderer));
+	}
+
+	state->currentMap = map.get();
 
 	parseTraversible(logger);
 
@@ -116,20 +122,20 @@ void Obelisk::packAssets(el::Logger *logger) {
 	smallRedCardBack = packedAssets->makeSpritePtr({smallCardPackRect.x + 28, smallCardPackRect.y + 0, 28, 38});
 	smallGreenCardBack = packedAssets->makeSpritePtr({smallCardPackRect.x + 56, smallCardPackRect.y + 0, 28, 38});
 
-	towerSprite = tmxRenderer->getPackedTexture()->makeSpritePtr({19 * 64, 7 * 64, 64, 64});
+	towerSprite = map->renderer->getPackedTexture()->makeSpritePtr({19 * 64, 7 * 64, 64, 64});
 }
 
 void Obelisk::initECS(el::Logger *logger) {
-	const auto rendererPos = tmxRenderer->getPosition();
+	const auto rendererPos = map->renderer->getPosition();
 
 	auto testMonster = engine->addEntity();
 
-	testMonster->add<PositionComponent>(rendererPos.x + tmxRenderer->getPixelWidth(),
-										rendererPos.y + (tmxRenderer->getPixelHeight() - animal->getHeight()) / 2.0f);
+	testMonster->add<PositionComponent>(rendererPos.x + map->renderer->getPixelWidth(),
+										rendererPos.y + (map->renderer->getPixelHeight() - animal->getHeight()) / 2.0f);
 	testMonster->add<RenderableComponent>(animal.get());
-	testMonster->add<WalkerComponent>(5.0f);
+	testMonster->add<WalkerComponent>(1.0f);
 
-	auto towerObjects = tmxRenderer->getObjectGroup("towers");
+	auto towerObjects = map->renderer->getObjectGroup("towers");
 
 	for (const auto &object : towerObjects) {
 		auto tower = engine->addEntity();
@@ -159,40 +165,6 @@ void Obelisk::initECS(el::Logger *logger) {
 }
 
 void Obelisk::parseTraversible(el::Logger *logger) {
-	const auto widthInTiles = tmxRenderer->getMap()->GetWidth();
-	const auto heightInTiles = tmxRenderer->getMap()->GetHeight();
-
-	state->traversibleWidthInTiles = widthInTiles;
-	state->traversibleHeightInTiles = heightInTiles;
-	state->traversibleTiles = std::make_unique<bool[]>(widthInTiles * heightInTiles);
-
-	auto layers = tmxRenderer->getMap()->GetTileLayers();
-
-	for (const auto &layer : layers) {
-		if (layer->GetProperties().GetBoolProperty("traversible", false)) {
-			logger->info("Layer '%v' is traversible", layer->GetName());
-			for (int y = 0; y < heightInTiles; ++y) {
-				for (int x = 0; x < widthInTiles; ++x) {
-					const auto tile = layer->GetTile(x, y);
-
-					if (tile.id >= 1) {
-						state->traversibleTiles[y * widthInTiles + x] = true;
-					}
-				}
-			}
-		}
-	}
-
-	// TODO: Don't assume there's only 1 point on the right
-
-	const auto searchX = widthInTiles - 1;
-	for (int y = 0; y < heightInTiles; ++y) {
-		if (state->traversibleTiles[y * widthInTiles + searchX]) {
-			state->traversibleStart = glm::ivec2{searchX, y};
-			logger->info("Set move search start to %v, %v", searchX, y);
-			break;
-		}
-	}
 }
 
 void Obelisk::render(float deltaTime) {
@@ -206,7 +178,7 @@ void Obelisk::render(float deltaTime) {
 	camera->update();
 	spriteBatch->setProjectionMatrix(camera->combinedMatrix);
 
-	tmxRenderer->renderAllAndUpdate(deltaTime);
+	map->renderer->renderAllAndUpdate(deltaTime);
 
 	engine->update(deltaTime);
 

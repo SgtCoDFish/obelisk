@@ -26,6 +26,7 @@
 #include "Ashley/Ashley.hpp"
 
 #include "ObeliskState.hpp"
+#include "ObeliskMap.hpp"
 
 namespace obelisk {
 class PlayerInputSystem;
@@ -78,7 +79,7 @@ private:
 	std::unique_ptr<APG::Sprite> smallRedCardBack;
 	std::unique_ptr<APG::Sprite> smallGreenCardBack;
 
-	std::unique_ptr<APG::PackedTmxRenderer> tmxRenderer;
+	std::unique_ptr<ObeliskMap> map;
 };
 
 }
