@@ -29,7 +29,6 @@ void EntitySpawnSystem::updateInterval() {
 
 	auto distribution = std::uniform_int_distribution<>{0, static_cast<int>(sprites.size() - 1)};
 
-
 	APG::SpriteBase *sprite{nullptr};
 	while (sprite == nullptr || sprite == lastSprite) {
 		sprite = sprites[distribution(state->rand)];

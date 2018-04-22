@@ -8,6 +8,7 @@
 #include <glm/detail/type_mat4x4.hpp>
 #include <components/CarriedComponent.hpp>
 #include <components/DeathComponent.hpp>
+#include <components/TowerUpgradeComponent.hpp>
 
 namespace obelisk {
 
@@ -58,9 +59,9 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 	const auto tower = towerMapper.get(entity);
 
 	if (tower != nullptr) {
-		// TODO: not this
-		tower->level += 1;
-		el::Loggers::getLogger("obelisk")->info("Card added to %v which is now level %v", tower->name, tower->level);
+		el::Loggers::getLogger("obelisk")->info("Card added to %v", tower->name);
+
+		entity->add<TowerUpgradeComponent>(5.0f);
 
 		auto carriedEntity = state->heldItem;
 		carriedEntity->remove<CarriedComponent>();

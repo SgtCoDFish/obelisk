@@ -15,7 +15,13 @@ public:
 	}
 
 	std::string name;
+
+	bool hasWeapon {false};
 	int level{0};
+	float range{64};
+
+	float attackCooldown{10.0f};
+	float timeToAttack{10.0f};
 };
 
 }

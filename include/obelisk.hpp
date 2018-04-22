@@ -52,8 +52,6 @@ private:
 
 	void packAssets(el::Logger *logger);
 
-	void parseTraversible(el::Logger *logger);
-
 	std::unique_ptr<ashley::Engine> engine;
 	PlayerInputSystem *playerInputSystem{nullptr};
 

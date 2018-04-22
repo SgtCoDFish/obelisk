@@ -66,8 +66,6 @@ bool Obelisk::init() {
 
 	state->currentMap = map.get();
 
-	parseTraversible(logger);
-
 	packAssets(logger);
 
 	auto glError = glGetError();
@@ -138,9 +136,9 @@ void Obelisk::initECS(el::Logger *logger) {
 		auto tower = engine->addEntity();
 
 		auto renderable = std::make_unique<RenderableComponent>(towerSprite.get());
-		renderable->visible = false;
 
 		tower->add<PositionComponent>(object.position.x + rendererPos.x, object.position.y + rendererPos.y);
+		logger->info("Created tower at: %v, %v", object.position.x + rendererPos.x, object.position.y + rendererPos.y);
 		tower->add<ClickableComponent>(SDL_Rect{0, 0, renderable->sprite->getWidth(), renderable->sprite->getHeight()});
 		tower->add<TowerComponent>(object.name);
 		tower->add(std::move(renderable));
@@ -155,7 +153,7 @@ void Obelisk::initECS(el::Logger *logger) {
 	displayedCard->add<CarryableComponent>(smallRedCardBack.get());
 
 	engine->addSystem<EntitySpawnSystem>(
-			500, 5.0f, state.get(),
+			500, 7.5f, state.get(),
 			std::vector<APG::SpriteBase *>(
 					{giraffe.get(), monkey.get(), rabbit.get(), snake.get(), pig.get()}
 			)
@@ -165,9 +163,6 @@ void Obelisk::initECS(el::Logger *logger) {
 	engine->addSystem<WalkingSystem>(3500, state);
 	playerInputSystem = engine->addSystem<PlayerInputSystem>(5000, inputManager.get(), camera.get(), state);
 	engine->addSystem<DeathSystem>(1000000);
-}
-
-void Obelisk::parseTraversible(el::Logger *logger) {
 }
 
 void Obelisk::render(float deltaTime) {
