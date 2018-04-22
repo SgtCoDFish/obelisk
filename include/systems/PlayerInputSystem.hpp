@@ -22,7 +22,7 @@ namespace obelisk {
 
 class PlayerInputSystem final : public ashley::IteratingSystem {
 public:
-	explicit PlayerInputSystem(int64_t priority, APG::SDLInputManager *inputManager, APG::Camera *camera, ObeliskState *state);
+	explicit PlayerInputSystem(int64_t priority, APG::SDLInputManager *inputManager, APG::Camera *camera, std::shared_ptr<ObeliskState> state);
 
 	void update(float deltaTime) override;
 
@@ -32,7 +32,7 @@ private:
 	APG::SDLInputManager *inputManager;
 	APG::Camera *camera;
 
-	ObeliskState *state;
+	std::shared_ptr<ObeliskState> state;
 
 	float mouseWorldX{0.0f};
 	float mouseWorldY{0.0f};

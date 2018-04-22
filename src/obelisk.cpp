@@ -10,6 +10,8 @@
 #include <components/TowerComponent.hpp>
 #include <systems/CarrySystem.hpp>
 #include <systems/DeathSystem.hpp>
+#include <components/WalkerComponent.hpp>
+#include <systems/WalkingSystem.hpp>
 
 #include "APG/GL.hpp"
 #include "APG/SDL.hpp"
@@ -39,7 +41,9 @@ const char *Obelisk::fragmentShaderFilename = "assets/frag.glslf";
 
 
 bool Obelisk::init() {
-	const auto logger = el::Loggers::getLogger("APG");
+	const auto logger = el::Loggers::getLogger("obelisk");
+
+	state = std::make_shared<ObeliskState>();
 
 	shaderProgram = APG::ShaderProgram::fromFiles(vertexShaderFilename, fragmentShaderFilename);
 
@@ -56,7 +60,7 @@ bool Obelisk::init() {
 	};
 	tmxRenderer->setPosition(tmxRendererPos);
 
-	state = std::make_unique<ObeliskState>();
+	parseTraversible(logger);
 
 	packAssets(logger);
 
@@ -123,6 +127,7 @@ void Obelisk::initECS(el::Logger *logger) {
 	testMonster->add<PositionComponent>(rendererPos.x + tmxRenderer->getPixelWidth(),
 										rendererPos.y + (tmxRenderer->getPixelHeight() - animal->getHeight()) / 2.0f);
 	testMonster->add<RenderableComponent>(animal.get());
+	testMonster->add<WalkerComponent>(5.0f);
 
 	auto towerObjects = tmxRenderer->getObjectGroup("towers");
 
@@ -138,6 +143,8 @@ void Obelisk::initECS(el::Logger *logger) {
 		tower->add(std::move(renderable));
 	}
 
+	logger->info("Created %v tower bases", towerObjects.size());
+
 	auto displayedCard = engine->addEntity();
 	displayedCard->add<PositionComponent>(10, 10);
 	displayedCard->add<RenderableComponent>(redCardBack.get());
@@ -146,15 +153,53 @@ void Obelisk::initECS(el::Logger *logger) {
 
 	engine->addSystem<RenderSystem>(spriteBatch.get(), 1000);
 	engine->addSystem<CarrySystem>(inputManager.get(), 2500);
-	playerInputSystem = engine->addSystem<PlayerInputSystem>(5000, inputManager.get(), camera.get(), state.get());
+	engine->addSystem<WalkingSystem>(3500, state);
+	playerInputSystem = engine->addSystem<PlayerInputSystem>(5000, inputManager.get(), camera.get(), state);
 	engine->addSystem<DeathSystem>(1000000);
+}
+
+void Obelisk::parseTraversible(el::Logger *logger) {
+	const auto widthInTiles = tmxRenderer->getMap()->GetWidth();
+	const auto heightInTiles = tmxRenderer->getMap()->GetHeight();
+
+	state->traversibleWidthInTiles = widthInTiles;
+	state->traversibleHeightInTiles = heightInTiles;
+	state->traversibleTiles = std::make_unique<bool[]>(widthInTiles * heightInTiles);
+
+	auto layers = tmxRenderer->getMap()->GetTileLayers();
+
+	for (const auto &layer : layers) {
+		if (layer->GetProperties().GetBoolProperty("traversible", false)) {
+			logger->info("Layer '%v' is traversible", layer->GetName());
+			for (int y = 0; y < heightInTiles; ++y) {
+				for (int x = 0; x < widthInTiles; ++x) {
+					const auto tile = layer->GetTile(x, y);
+
+					if (tile.id >= 1) {
+						state->traversibleTiles[y * widthInTiles + x] = true;
+					}
+				}
+			}
+		}
+	}
+
+	// TODO: Don't assume there's only 1 point on the right
+
+	const auto searchX = widthInTiles - 1;
+	for (int y = 0; y < heightInTiles; ++y) {
+		if (state->traversibleTiles[y * widthInTiles + searchX]) {
+			state->traversibleStart = glm::ivec2{searchX, y};
+			logger->info("Set move search start to %v, %v", searchX, y);
+			break;
+		}
+	}
 }
 
 void Obelisk::render(float deltaTime) {
 	glClearColor(0.18f, 0.80f, 0.44f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	if(inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE)) {
+	if (inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE)) {
 		//el::Loggers::getLogger("obelisk")->info("Mouse (x, y) = (%v, %v)", );
 	}
 

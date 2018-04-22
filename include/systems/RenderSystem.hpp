@@ -4,6 +4,11 @@
 #include <cstdint>
 
 #include <Ashley/systems/IteratingSystem.hpp>
+#include <Ashley/core/ComponentMapper.hpp>
+
+#include "components/ColorComponent.hpp"
+#include "components/PositionComponent.hpp"
+#include "components/RenderableComponent.hpp"
 
 namespace APG {
 class SpriteBatch;
@@ -21,6 +26,10 @@ public:
 
 private:
 	APG::SpriteBatch *batch;
+
+	ashley::ComponentMapper<PositionComponent> positionMapper = ashley::ComponentMapper<PositionComponent>::getMapper();
+	ashley::ComponentMapper<RenderableComponent> renderableMapper = ashley::ComponentMapper<RenderableComponent>::getMapper();
+	ashley::ComponentMapper<ColorComponent> colorMapper = ashley::ComponentMapper<ColorComponent>::getMapper();
 };
 
 }

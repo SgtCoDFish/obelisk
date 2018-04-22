@@ -12,18 +12,16 @@
 namespace obelisk {
 
 PlayerInputSystem::PlayerInputSystem(int64_t priority, APG::SDLInputManager *inputManager, APG::Camera *camera,
-									 ObeliskState *state) :
+									 std::shared_ptr<ObeliskState> state) :
 		IteratingSystem(ashley::Family::getFor({typeid(PositionComponent), typeid(ClickableComponent)}), priority),
 		inputManager{inputManager},
 		camera{camera},
-		state{state} {
+		state{std::move(state)} {
 }
 
 void PlayerInputSystem::update(float deltaTime) {
 	mouseWorldX = inputManager->getMouseX();
 	mouseWorldY = inputManager->getMouseY();
-
-	//el::Loggers::getLogger("obelisk")->info("(x, y) = (%v, %v)", mouseWorldX, mouseWorldY);
 
 	if (inputManager->isLeftMouseJustPressed()) {
 		for (auto &e : *entities) {
@@ -57,13 +55,12 @@ void PlayerInputSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *position, ClickableComponent *clickable,
 									float deltaTime) {
 	// entity is the _target_
-	el::Loggers::getLogger("obelisk")->info("processing potential tower");
 	const auto tower = towerMapper.get(entity);
 
 	if (tower != nullptr) {
 		// TODO: not this
 		tower->level += 1;
-		el::Loggers::getLogger("obelisk")->info("added to %v, now level %v", tower->name, tower->level);
+		el::Loggers::getLogger("obelisk")->info("Card added to %v which is now level %v", tower->name, tower->level);
 
 		auto carriedEntity = state->heldItem;
 		carriedEntity->remove<CarriedComponent>();

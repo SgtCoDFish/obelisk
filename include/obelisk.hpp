@@ -33,25 +33,30 @@ class PlayerInputSystem;
 class Obelisk final : public APG::SDLGame {
 public:
 	explicit Obelisk(const std::string &windowTitle, uint32_t windowWidth, uint32_t windowHeight,
-	        uint32_t glContextMajor = 3, uint32_t glContextMinor = 2, uint32_t windowX = SDL_WINDOWPOS_CENTERED,
-	        uint32_t windowY = SDL_WINDOWPOS_CENTERED);
+					 uint32_t glContextMajor = 3, uint32_t glContextMinor = 2,
+					 uint32_t windowX = SDL_WINDOWPOS_CENTERED,
+					 uint32_t windowY = SDL_WINDOWPOS_CENTERED);
 
 	~Obelisk() override = default;
 
 	bool init() override;
+
 	void render(float deltaTime) override;
 
 private:
 	static const char *vertexShaderFilename;
 	static const char *fragmentShaderFilename;
 
-	void initECS(el::Logger * logger);
-	void packAssets(el::Logger * logger);
+	void initECS(el::Logger *logger);
+
+	void packAssets(el::Logger *logger);
+
+	void parseTraversible(el::Logger *logger);
 
 	std::unique_ptr<ashley::Engine> engine;
-	PlayerInputSystem * playerInputSystem {nullptr};
+	PlayerInputSystem *playerInputSystem{nullptr};
 
-	std::unique_ptr<ObeliskState> state;
+	std::shared_ptr<ObeliskState> state;
 
 	std::unique_ptr<APG::ShaderProgram> shaderProgram;
 

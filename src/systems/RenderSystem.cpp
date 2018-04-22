@@ -4,9 +4,6 @@
 
 #include "systems/RenderSystem.hpp"
 
-#include "components/PositionComponent.hpp"
-#include "components/RenderableComponent.hpp"
-
 namespace obelisk {
 
 RenderSystem::RenderSystem(APG::SpriteBatch *batch, int64_t priority) :
@@ -16,8 +13,9 @@ RenderSystem::RenderSystem(APG::SpriteBatch *batch, int64_t priority) :
 }
 
 void RenderSystem::processEntity(ashley::Entity *entity, float deltaTime) {
-	auto position = ashley::ComponentMapper<PositionComponent>::getMapper().get(entity);
-	auto renderable = ashley::ComponentMapper<RenderableComponent>::getMapper().get(entity);
+	auto position = positionMapper.get(entity);
+	auto renderable = renderableMapper.get(entity);
+	auto color = colorMapper.get(entity);
 
 	if (renderable->visible) {
 		auto sprite = renderable->sprite;
@@ -27,7 +25,14 @@ void RenderSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 			sprite = carried->smallSprite;
 		}
 
-		batch->draw(sprite, position->position.x, position->position.y);
+		if (color != nullptr) {
+			auto origColor = batch->getColor();
+			batch->setColor(color->color);
+			batch->draw(sprite, position->position.x, position->position.y);
+			batch->setColor(origColor);
+		} else {
+			batch->draw(sprite, position->position.x, position->position.y);
+		}
 	}
 }
 
