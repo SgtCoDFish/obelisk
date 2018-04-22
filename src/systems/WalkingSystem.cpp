@@ -98,7 +98,7 @@ void WalkingSystem::handleStep(ashley::Entity *entity, WalkerComponent *walker, 
 	auto entityTilePos = glm::ivec2{static_cast<int>(entityMapPos.x / map->getTileWidth()),
 									static_cast<int>(entityMapPos.y / map->getTileHeight())};
 
-	logger->info("Entity is at %v, %v", entityTilePos.x, entityTilePos.y);
+	//logger->info("Entity is at %v, %v", );
 
 	if (entityTilePos == map->traversibleEnd) {
 		entity->add<DeathComponent>();
@@ -115,7 +115,8 @@ void WalkingSystem::handleStep(ashley::Entity *entity, WalkerComponent *walker, 
 		nextTile = map->traversibleStart;
 	}
 
-	logger->info("Next: %v, %v", nextTile.x, nextTile.y);
+	logger->verbose(9, "Entity moving from (%v, %v) to (%v, %v)", entityTilePos.x, entityTilePos.y, nextTile.x,
+					nextTile.y);
 
 	position->position = rendererPos + glm::vec2{nextTile.x * map->getTileWidth(), nextTile.y * map->getTileHeight()};
 	// 1. find tile of entity

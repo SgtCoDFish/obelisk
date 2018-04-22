@@ -65,11 +65,16 @@ private:
 	std::unique_ptr<APG::SpriteBatch> spriteBatch;
 
 	std::unique_ptr<APG::PackedTexture> packedAssets;
-	SDL_Rect animalPackRect; // the packed location of the animal asset file
+	SDL_Rect animalPackRect; // the packed location of the giraffe asset file
 	SDL_Rect cardPackRect; // the packed location of the card asset file
 	SDL_Rect smallCardPackRect; // the packed location of the small card asset file
 
-	std::unique_ptr<APG::Sprite> animal;
+	std::unique_ptr<APG::Sprite> monkey;
+	std::unique_ptr<APG::Sprite> rabbit;
+	std::unique_ptr<APG::Sprite> snake;
+	std::unique_ptr<APG::Sprite> pig;
+	std::unique_ptr<APG::Sprite> giraffe;
+
 	std::unique_ptr<APG::Sprite> towerSprite;
 
 	std::unique_ptr<APG::Sprite> blueCardBack;

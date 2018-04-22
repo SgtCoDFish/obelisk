@@ -6,12 +6,6 @@
 #include <chrono>
 #include <vector>
 #include <numeric>
-#include <systems/RenderSystem.hpp>
-#include <components/TowerComponent.hpp>
-#include <systems/CarrySystem.hpp>
-#include <systems/DeathSystem.hpp>
-#include <components/WalkerComponent.hpp>
-#include <systems/WalkingSystem.hpp>
 
 #include "APG/GL.hpp"
 #include "APG/SDL.hpp"
@@ -24,8 +18,14 @@
 #include "obelisk.hpp"
 #include "components/RenderableComponent.hpp"
 #include "components/PositionComponent.hpp"
+#include <components/TowerComponent.hpp>
+#include <components/WalkerComponent.hpp>
 #include "systems/RenderSystem.hpp"
 #include "systems/PlayerInputSystem.hpp"
+#include <systems/WalkingSystem.hpp>
+#include <systems/EntitySpawnSystem.hpp>
+#include <systems/CarrySystem.hpp>
+#include <systems/DeathSystem.hpp>
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -90,7 +90,7 @@ void Obelisk::packAssets(el::Logger *logger) {
 
 	auto maybeAnimals = packedAssets->insertFile("assets/animals.png");
 	if (!maybeAnimals) {
-		logger->fatal("Couldn't pack required animal assets.");
+		logger->fatal("Couldn't pack required giraffe assets.");
 		return;
 	}
 
@@ -112,7 +112,11 @@ void Obelisk::packAssets(el::Logger *logger) {
 	this->cardPackRect = *maybeCards;
 	this->smallCardPackRect = *maybeSmallCards;
 
-	animal = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 3), animalPackRect.y + 64, 64, 64});
+	monkey = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 0), animalPackRect.y + (64 * 0), 64, 64});
+	rabbit = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 1), animalPackRect.y + (64 * 0), 64, 64});
+	snake = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 0), animalPackRect.y + (64 * 3), 64, 64});
+	pig = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 1), animalPackRect.y + (64 * 3), 64, 64});
+	giraffe = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 3), animalPackRect.y + (64 * 1), 64, 64});
 
 	blueCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 0, cardPackRect.y + 0, 140, 190});
 	redCardBack = packedAssets->makeSpritePtr({cardPackRect.x + 140, cardPackRect.y + 0, 140, 190});
@@ -127,13 +131,6 @@ void Obelisk::packAssets(el::Logger *logger) {
 
 void Obelisk::initECS(el::Logger *logger) {
 	const auto rendererPos = map->renderer->getPosition();
-
-	auto testMonster = engine->addEntity();
-
-	testMonster->add<PositionComponent>(rendererPos.x + map->renderer->getPixelWidth(),
-										rendererPos.y + (map->renderer->getPixelHeight() - animal->getHeight()) / 2.0f);
-	testMonster->add<RenderableComponent>(animal.get());
-	testMonster->add<WalkerComponent>(1.0f);
 
 	auto towerObjects = map->renderer->getObjectGroup("towers");
 
@@ -157,6 +154,12 @@ void Obelisk::initECS(el::Logger *logger) {
 	displayedCard->add<ClickableComponent>(SDL_Rect{0, 0, redCardBack->getWidth(), redCardBack->getHeight()});
 	displayedCard->add<CarryableComponent>(smallRedCardBack.get());
 
+	engine->addSystem<EntitySpawnSystem>(
+			500, 5.0f, state.get(),
+			std::vector<APG::SpriteBase *>(
+					{giraffe.get(), monkey.get(), rabbit.get(), snake.get(), pig.get()}
+			)
+	);
 	engine->addSystem<RenderSystem>(spriteBatch.get(), 1000);
 	engine->addSystem<CarrySystem>(inputManager.get(), 2500);
 	engine->addSystem<WalkingSystem>(3500, state);
