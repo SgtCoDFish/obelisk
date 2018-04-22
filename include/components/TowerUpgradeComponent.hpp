@@ -4,21 +4,48 @@
 #include <Ashley/core/Component.hpp>
 
 #include "UpgradeType.hpp"
+#include <APG/graphics/SpriteBase.hpp>
+#include <glm/vec2.hpp>
 
 namespace obelisk {
 
 class TowerUpgradeComponent final : public ashley::Component {
 public:
-	explicit TowerUpgradeComponent(float timeRequired, UpgradeType upgradeType) :
-			timeRequired{timeRequired},
-			timeRemaining{timeRequired},
-			upgradeType{upgradeType}{
+	explicit TowerUpgradeComponent(UpgradeType upgradeType) :
+			upgradeType{upgradeType} {
+		switch (upgradeType) {
+			case UpgradeType::LEVEL: {
+				timeRequired = 5.0f;
+				break;
+			}
+
+			case UpgradeType::TOWER_ROCKET_UPGRADE: {
+				timeRequired = 15.0f;
+				break;
+			}
+			case UpgradeType::TOWER_GUN_UPGRADE: {
+				timeRequired = 10.0f;
+				break;
+			}
+
+			case UpgradeType::NONE: {
+				el::Loggers::getLogger("obelisk")->error("NONE upgrade type was created");
+				break;
+			}
+		}
+
+		timeRemaining = timeRequired;
 	}
 
-	const float timeRequired;
+	UpgradeType upgradeType;
+
+	float timeRequired;
 	float timeRemaining;
 
-	UpgradeType upgradeType;
+	bool applied{false};
+
+	APG::SpriteBase *secondarySprite{nullptr};
+	glm::vec2 secondarySpritePos{-1.0f, -1.0f};
 };
 
 }

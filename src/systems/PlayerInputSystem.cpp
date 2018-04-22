@@ -61,21 +61,27 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 	if (tower != nullptr && !towerUpgradeMapper.has(entity)) {
 		el::Loggers::getLogger("obelisk")->info("Card added to %v", tower->name);
 
-
 		auto carriedEntity = state->heldItem;
+
+		auto carryable = carryableMapper.get(carriedEntity);
+
+		if (carryable->upgradeType == UpgradeType::LEVEL && !tower->hasWeapon) {
+			state->toastSystem->addToast("NO WEAPON TO UPGRADE", position->position);
+			return false;
+		}
+
 		carriedEntity->remove<CarriedComponent>();
 		carriedEntity->add<DeathComponent>();
 		state->heldItem = nullptr;
 
-		auto carryable = carryableMapper.get(carriedEntity);
-		entity->add<TowerUpgradeComponent>(5.0f, carryable->upgradeType);
+		entity->add<TowerUpgradeComponent>(carryable->upgradeType);
 		state->toastSystem->addToast("UPGRADING", position->position);
 		return true;
 	}
 
 	const auto trash = trashMapper.get(entity);
 
-	if(trash != nullptr) {
+	if (trash != nullptr) {
 		el::Loggers::getLogger("obelisk")->info("Card trashed");
 
 		auto carriedEntity = state->heldItem;

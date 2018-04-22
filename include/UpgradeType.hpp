@@ -6,7 +6,8 @@ namespace obelisk {
 enum class UpgradeType {
 	NONE,
 	TOWER_GUN_UPGRADE,
-	TOWER_ROCKET_UPGRADE
+	TOWER_ROCKET_UPGRADE,
+	LEVEL
 };
 
 }

@@ -26,7 +26,16 @@ void TowerUpgradeSystem::processEntity(ashley::Entity *entity, float deltaTime) 
 	auto towerUpgrade = towerUpgradeMapper.get(entity);
 	auto renderable = renderableMapper.get(entity);
 
-	renderable->setSecondary(constructionOverlay);
+	if (!towerUpgrade->applied) {
+		towerUpgrade->applied = true;
+
+		if(tower->hasWeapon && renderable->secondary != nullptr) {
+			towerUpgrade->secondarySprite = renderable->secondary;
+			towerUpgrade->secondarySpritePos = renderable->secondaryPos;
+		}
+
+		renderable->setSecondary(constructionOverlay);
+	}
 
 	towerUpgrade->timeRemaining -= deltaTime;
 
@@ -35,13 +44,18 @@ void TowerUpgradeSystem::processEntity(ashley::Entity *entity, float deltaTime) 
 		state->toastSystem->addToast("UPGRADE COMPLETE", position->position);
 		if (towerUpgrade->upgradeType == UpgradeType::TOWER_GUN_UPGRADE) {
 			renderable->setSecondary(gunUpgrade);
+			tower->hasWeapon = true;
+			tower->level++;
 		} else if (towerUpgrade->upgradeType == UpgradeType::TOWER_ROCKET_UPGRADE) {
 			renderable->setSecondary(rocketUpgrade);
+			tower->hasWeapon = true;
+			tower->level++;
+		} else if (towerUpgrade->upgradeType == UpgradeType::LEVEL) {
+			tower->level++;
+			renderable->setSecondary(towerUpgrade->secondarySprite);
 		} else {
 			el::Loggers::getLogger("obelisk")->error("Unknown tower upgrade type");
 		}
-		tower->hasWeapon = true;
-		tower->level++;
 
 		entity->remove<TowerUpgradeComponent>();
 	}

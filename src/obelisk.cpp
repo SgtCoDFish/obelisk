@@ -31,6 +31,7 @@
 #include <components/TrashComponent.hpp>
 #include <components/DeckComponent.hpp>
 #include <systems/ToastSystem.hpp>
+#include <systems/MovementSystem.hpp>
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -149,6 +150,7 @@ void Obelisk::packAssets(el::Logger *logger) {
 	towerSprite = map->renderer->getPackedTexture()->makeSpritePtr({19 * 64, 7 * 64, 64, 64});
 	gunUpgradeSprite = map->renderer->getPackedTexture()->makeSpritePtr({19 * 64, 10 * 64, 64, 64});
 	rocketUpgradeSprite = map->renderer->getPackedTexture()->makeSpritePtr({20 * 64, 8 * 64, 64, 64});
+	plusUpgradeSprite = map->renderer->getPackedTexture()->makeSpritePtr({13 * 64, 12 * 64 + 1, 64, 64});
 }
 
 void Obelisk::initECS(el::Logger *logger) {
@@ -184,6 +186,13 @@ void Obelisk::initECS(el::Logger *logger) {
 	displayedCard2->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_ROCKET_UPGRADE,
 											rocketUpgradeSprite.get());
 
+	auto displayedCard3 = engine->addEntity();
+	displayedCard3->add<PositionComponent>(10 * 3 + greenCardFront->getWidth() * 2, 10);
+	displayedCard3->add<RenderableComponent>(greenCardFront.get(), plusUpgradeSprite.get());
+	displayedCard3->add<ClickableComponent>(SDL_Rect{0, 0, greenCardFront->getWidth(), greenCardFront->getHeight()});
+	displayedCard3->add<CarryableComponent>(smallGreenCardBack.get(), UpgradeType::LEVEL,
+											plusUpgradeSprite.get());
+
 	auto deck1 = engine->addEntity();
 	deck1->add<PositionComponent>(10, 10 * 3 + blueCardBack->getHeight() * 2);
 	deck1->add<RenderableComponent>(blueCardBack.get());
@@ -213,6 +222,7 @@ void Obelisk::initECS(el::Logger *logger) {
 	engine->addSystem<TowerUpgradeSystem>(10000, state, gunUpgradeSprite.get(), rocketUpgradeSprite.get(),
 										  constructionOverlay.get());
 	engine->addSystem<TowerAttackSystem>(15000);
+	engine->addSystem<MovementSystem>(17500);
 	state->toastSystem = engine->addSystem<ToastSystem>(20000, fontManager.get(), font);
 	engine->addSystem<DeathSystem>(1000000);
 }

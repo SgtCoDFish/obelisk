@@ -81,6 +81,7 @@ private:
 	std::unique_ptr<APG::Sprite> towerSprite;
 	std::unique_ptr<APG::Sprite> gunUpgradeSprite;
 	std::unique_ptr<APG::Sprite> rocketUpgradeSprite;
+	std::unique_ptr<APG::Sprite> plusUpgradeSprite;
 
 	std::unique_ptr<APG::Sprite> constructionOverlay;
 

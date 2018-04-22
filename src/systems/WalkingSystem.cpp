@@ -13,6 +13,7 @@
 #include <glm/vec2.hpp>
 #include <glm/integer.hpp>
 #include <components/DeathComponent.hpp>
+#include <components/MoveComponent.hpp>
 
 #include "easylogging++.h"
 
@@ -118,10 +119,8 @@ void WalkingSystem::handleStep(ashley::Entity *entity, WalkerComponent *walker, 
 	logger->verbose(9, "Entity moving from (%v, %v) to (%v, %v)", entityTilePos.x, entityTilePos.y, nextTile.x,
 					nextTile.y);
 
-	position->position = rendererPos + glm::vec2{nextTile.x * map->getTileWidth(), nextTile.y * map->getTileHeight()};
-	// 1. find tile of entity
-	// 2. get wentTo for that tile
-	// 3. start moving towards the wentTo
+	entity->add<MoveComponent>(
+			rendererPos + glm::vec2{nextTile.x * map->getTileWidth(), nextTile.y * map->getTileHeight()}, 1.0f);
 }
 
 }

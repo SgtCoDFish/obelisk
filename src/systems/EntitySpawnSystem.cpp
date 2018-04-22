@@ -2,6 +2,7 @@
 #include <components/PositionComponent.hpp>
 #include <components/RenderableComponent.hpp>
 #include <components/WalkerComponent.hpp>
+#include <components/MonsterComponent.hpp>
 
 #include "systems/EntitySpawnSystem.hpp"
 
@@ -43,6 +44,7 @@ void EntitySpawnSystem::updateInterval() {
 									   (renderer->getPixelHeight() - sprite->getHeight()) / 2.0f);
 	newMonster->add<WalkerComponent>(1.0f);
 	newMonster->add<RenderableComponent>(std::move(renderable));
+	newMonster->add<MonsterComponent>();
 }
 
 }
