@@ -8,6 +8,7 @@
 
 #include <glm/vec2.hpp>
 #include <random>
+#include <systems/ToastSystem.hpp>
 #include "ObeliskMap.hpp"
 
 namespace obelisk {
@@ -18,6 +19,7 @@ struct ObeliskState {
 	std::mt19937_64 rand{static_cast<unsigned long>(
 								 std::chrono::high_resolution_clock::now().time_since_epoch().count()
 						 )};
+	ToastSystem * toastSystem{nullptr};
 };
 
 }

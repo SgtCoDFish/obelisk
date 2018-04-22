@@ -11,6 +11,7 @@ uniform mat4 projTrans;
 
 void main() {
     frag_color = color;
+	frag_color.a = frag_color.a * (255.0/254.0);
     frag_texcoord = texcoord;
     gl_Position = projTrans * vec4(position, 0.0, 1.0);
 }

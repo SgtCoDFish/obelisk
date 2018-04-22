@@ -3,16 +3,13 @@
 
 #include <Ashley/core/Component.hpp>
 
+#include "UpgradeType.hpp"
+
 namespace APG {
 class SpriteBase;
 }
 
 namespace obelisk {
-enum class UpgradeType {
-	NONE,
-	TOWER_GUN_UPGRADE,
-	TOWER_ROCKET_UPGRADE
-};
 
 class CarryableComponent final : public ashley::Component {
 public:

@@ -58,15 +58,18 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 	// entity is the _target_
 	const auto tower = towerMapper.get(entity);
 
-	if (tower != nullptr) {
+	if (tower != nullptr && !towerUpgradeMapper.has(entity)) {
 		el::Loggers::getLogger("obelisk")->info("Card added to %v", tower->name);
 
-		entity->add<TowerUpgradeComponent>(5.0f);
 
 		auto carriedEntity = state->heldItem;
 		carriedEntity->remove<CarriedComponent>();
 		carriedEntity->add<DeathComponent>();
 		state->heldItem = nullptr;
+
+		auto carryable = carryableMapper.get(carriedEntity);
+		entity->add<TowerUpgradeComponent>(5.0f, carryable->upgradeType);
+		state->toastSystem->addToast("UPGRADING", position->position);
 		return true;
 	}
 
@@ -78,6 +81,7 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 		auto carriedEntity = state->heldItem;
 		carriedEntity->add<DeathComponent>();
 		state->heldItem = nullptr;
+		state->toastSystem->addToast("TRASHED", position->position);
 		return true;
 	}
 
@@ -87,10 +91,16 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 bool
 PlayerInputSystem::processPickup(ashley::Entity *entity, PositionComponent *position, ClickableComponent *clickable,
 								 float deltaTime) {
-	auto carryable = carryableMapper.get(entity);
+	const auto carryable = carryableMapper.get(entity);
 	if (carryable != nullptr) {
 		entity->add<CarriedComponent>(carryable->smallSprite, position->position);
 		state->heldItem = entity;
+		return true;
+	}
+
+	const auto deck = deckMapper.get(entity);
+	if (deck != nullptr) {
+		el::Loggers::getLogger("obelisk")->info("deck");
 		return true;
 	}
 

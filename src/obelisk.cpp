@@ -29,6 +29,8 @@
 #include <systems/TowerUpgradeSystem.hpp>
 #include <systems/TowerAttackSystem.hpp>
 #include <components/TrashComponent.hpp>
+#include <components/DeckComponent.hpp>
+#include <systems/ToastSystem.hpp>
 
 INITIALIZE_EASYLOGGINGPP
 
@@ -66,6 +68,8 @@ bool Obelisk::init() {
 
 		map = std::make_unique<ObeliskMap>(std::move(tmxRenderer));
 	}
+
+	font = fontManager->loadFontFile("assets/pixel_square.ttf", 16);
 
 	state->currentMap = map.get();
 
@@ -140,6 +144,8 @@ void Obelisk::packAssets(el::Logger *logger) {
 	smallRedCardBack = packedAssets->makeSpritePtr({smallCardPackRect.x + 28, smallCardPackRect.y + 0, 28, 38});
 	smallGreenCardBack = packedAssets->makeSpritePtr({smallCardPackRect.x + 56, smallCardPackRect.y + 0, 28, 38});
 
+	constructionOverlay = map->renderer->getPackedTexture()->makeSpritePtr({16 * 64, 0 * 64, 64, 64});
+
 	towerSprite = map->renderer->getPackedTexture()->makeSpritePtr({19 * 64, 7 * 64, 64, 64});
 	gunUpgradeSprite = map->renderer->getPackedTexture()->makeSpritePtr({19 * 64, 10 * 64, 64, 64});
 	rocketUpgradeSprite = map->renderer->getPackedTexture()->makeSpritePtr({20 * 64, 8 * 64, 64, 64});
@@ -178,6 +184,12 @@ void Obelisk::initECS(el::Logger *logger) {
 	displayedCard2->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_ROCKET_UPGRADE,
 											rocketUpgradeSprite.get());
 
+	auto deck1 = engine->addEntity();
+	deck1->add<PositionComponent>(10, 10 * 3 + blueCardBack->getHeight() * 2);
+	deck1->add<RenderableComponent>(blueCardBack.get());
+	deck1->add<DeckComponent>();
+	deck1->add<ClickableComponent>(SDL_Rect{0, 0, blueCardBack->getWidth(), blueCardBack->getHeight()});
+
 	{
 		auto trashEntity = engine->addEntity();
 		auto trashRenderable = std::make_unique<RenderableComponent>(trashSprite.get());
@@ -189,7 +201,7 @@ void Obelisk::initECS(el::Logger *logger) {
 	}
 
 	engine->addSystem<EntitySpawnSystem>(
-			500, 7.5f, state.get(),
+			500, 10.0f, state.get(),
 			std::vector<APG::SpriteBase *>(
 					{giraffe.get(), monkey.get(), rabbit.get(), snake.get(), pig.get()}
 			)
@@ -198,8 +210,10 @@ void Obelisk::initECS(el::Logger *logger) {
 	engine->addSystem<CarrySystem>(inputManager.get(), 2500);
 	engine->addSystem<WalkingSystem>(3500, state);
 	playerInputSystem = engine->addSystem<PlayerInputSystem>(5000, inputManager.get(), camera.get(), state);
-	engine->addSystem<TowerUpgradeSystem>(10000);
+	engine->addSystem<TowerUpgradeSystem>(10000, state, gunUpgradeSprite.get(), rocketUpgradeSprite.get(),
+										  constructionOverlay.get());
 	engine->addSystem<TowerAttackSystem>(15000);
+	state->toastSystem = engine->addSystem<ToastSystem>(20000, fontManager.get(), font);
 	engine->addSystem<DeathSystem>(1000000);
 }
 

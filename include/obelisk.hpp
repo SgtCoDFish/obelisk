@@ -52,6 +52,8 @@ private:
 
 	void packAssets(el::Logger *logger);
 
+	APG::FontManager::font_handle font{-1};
+
 	std::unique_ptr<ashley::Engine> engine;
 	PlayerInputSystem *playerInputSystem{nullptr};
 
@@ -79,6 +81,8 @@ private:
 	std::unique_ptr<APG::Sprite> towerSprite;
 	std::unique_ptr<APG::Sprite> gunUpgradeSprite;
 	std::unique_ptr<APG::Sprite> rocketUpgradeSprite;
+
+	std::unique_ptr<APG::Sprite> constructionOverlay;
 
 	std::unique_ptr<APG::Sprite> blueCardFront;
 	std::unique_ptr<APG::Sprite> redCardFront;

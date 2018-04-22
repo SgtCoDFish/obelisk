@@ -17,9 +17,12 @@ public:
 	APG::SpriteBase *sprite;
 
 	APG::SpriteBase *secondary{nullptr};
-	glm::vec2 secondaryPos;
+	glm::vec2 secondaryPos{-1.0f, -1.0f};
 
 	bool visible{true};
+
+	void setSecondary(APG::SpriteBase *secondary);
+	void calculateSecondaryPos();
 };
 
 }

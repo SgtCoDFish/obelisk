@@ -12,6 +12,8 @@
 #include <components/CarryableComponent.hpp>
 #include <components/TowerComponent.hpp>
 #include <components/TrashComponent.hpp>
+#include <components/TowerUpgradeComponent.hpp>
+#include <components/DeckComponent.hpp>
 
 namespace APG {
 class SDLInputManager;
@@ -48,7 +50,9 @@ private:
 	ashley::ComponentMapper<PositionComponent> positionMapper{ashley::ComponentMapper<PositionComponent>::getMapper()};
 	ashley::ComponentMapper<ClickableComponent> clickableMapper{ashley::ComponentMapper<ClickableComponent>::getMapper()};
 	ashley::ComponentMapper<CarryableComponent> carryableMapper{ashley::ComponentMapper<CarryableComponent>::getMapper()};
+	ashley::ComponentMapper<DeckComponent> deckMapper{ashley::ComponentMapper<DeckComponent>::getMapper()};
 	ashley::ComponentMapper<TowerComponent> towerMapper{ashley::ComponentMapper<TowerComponent>::getMapper()};
+	ashley::ComponentMapper<TowerUpgradeComponent> towerUpgradeMapper{ashley::ComponentMapper<TowerUpgradeComponent>::getMapper()};
 	ashley::ComponentMapper<TrashComponent> trashMapper{ashley::ComponentMapper<TrashComponent>::getMapper()};
 };
 
