@@ -19,8 +19,12 @@ public:
 				break;
 			}
 
+			case UpgradeType ::SPEED: {
+				timeRequired = 5.0f;
+			}
+
 			case UpgradeType::TOWER_ROCKET_UPGRADE: {
-				timeRequired = 15.0f;
+				timeRequired = 20.0f;
 				break;
 			}
 			case UpgradeType::TOWER_GUN_UPGRADE: {

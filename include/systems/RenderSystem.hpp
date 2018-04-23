@@ -5,6 +5,7 @@
 
 #include <Ashley/systems/IteratingSystem.hpp>
 #include <Ashley/core/ComponentMapper.hpp>
+#include <components/AnnotationComponent.hpp>
 
 #include "components/ColorComponent.hpp"
 #include "components/PositionComponent.hpp"
@@ -30,6 +31,7 @@ private:
 	ashley::ComponentMapper<PositionComponent> positionMapper = ashley::ComponentMapper<PositionComponent>::getMapper();
 	ashley::ComponentMapper<RenderableComponent> renderableMapper = ashley::ComponentMapper<RenderableComponent>::getMapper();
 	ashley::ComponentMapper<ColorComponent> colorMapper = ashley::ComponentMapper<ColorComponent>::getMapper();
+	ashley::ComponentMapper<AnnotationComponent> annotationMapper = ashley::ComponentMapper<AnnotationComponent>::getMapper();
 };
 
 }

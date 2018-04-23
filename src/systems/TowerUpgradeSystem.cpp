@@ -45,19 +45,21 @@ void TowerUpgradeSystem::processEntity(ashley::Entity *entity, float deltaTime) 
 			state->toastSystem->addToast("GUN UPGRADE COMPLETE", position->position);
 			renderable->setSecondary(gunUpgrade);
 			tower->upgradeType = towerUpgrade->upgradeType;
-			tower->level++;
-			tower->range = renderable->sprite->getWidth() * 5;
+			tower->range = renderable->sprite->getWidth() * 4;
 			tower->attackCooldown = 2.0f;
 		} else if (towerUpgrade->upgradeType == UpgradeType::TOWER_ROCKET_UPGRADE) {
 			state->toastSystem->addToast("ROCKET UPGRADE COMPLETE", position->position);
 			renderable->setSecondary(rocketUpgrade);
 			tower->upgradeType = towerUpgrade->upgradeType;
-			tower->level++;
-			tower->range = renderable->sprite->getWidth() * 10;
-			tower->attackCooldown = 5.0f;
+			tower->range = renderable->sprite->getWidth() * 9;
+			tower->attackCooldown = 7.5f;
 		} else if (towerUpgrade->upgradeType == UpgradeType::LEVEL) {
 			state->toastSystem->addToast("LEVEL UPGRADE COMPLETE", position->position);
 			tower->level++;
+			renderable->setSecondary(towerUpgrade->secondarySprite);
+		} else if (towerUpgrade->upgradeType == UpgradeType::SPEED) {
+			state->toastSystem->addToast("SPEED UPGRADE COMPLETE", position->position);
+			tower->timeToAttack *= 0.75f;
 			renderable->setSecondary(towerUpgrade->secondarySprite);
 		} else {
 			el::Loggers::getLogger("obelisk")->error("Unknown tower upgrade type");

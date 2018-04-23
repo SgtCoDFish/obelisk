@@ -24,6 +24,7 @@ PlayerInputSystem::PlayerInputSystem(int64_t priority, APG::SDLInputManager *inp
 }
 
 void PlayerInputSystem::update(float deltaTime) {
+
 	mouseWorldX = inputManager->getMouseX();
 	mouseWorldY = inputManager->getMouseY();
 
@@ -68,7 +69,8 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 
 		auto carryable = carryableMapper.get(carriedEntity);
 
-		if (carryable->upgradeType == UpgradeType::LEVEL && tower->upgradeType == UpgradeType::NONE) {
+		if ((carryable->upgradeType == UpgradeType::LEVEL || carryable->upgradeType == UpgradeType::SPEED) &&
+			tower->upgradeType == UpgradeType::NONE) {
 			state->toastSystem->addToast("NO WEAPON TO UPGRADE", position->position);
 			return false;
 		}
@@ -85,8 +87,6 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 	const auto trash = trashMapper.get(entity);
 
 	if (trash != nullptr) {
-		el::Loggers::getLogger("obelisk")->info("Card trashed");
-
 		auto carriedEntity = state->heldItem;
 		carriedEntity->add<DeathComponent>();
 		state->heldItem = nullptr;
@@ -109,16 +109,13 @@ PlayerInputSystem::processPickup(ashley::Entity *entity, PositionComponent *posi
 
 	const auto deck = deckMapper.get(entity);
 	if (deck != nullptr) {
-		el::Loggers::getLogger("obelisk")->info("deck");
 		if (state->hand.size() >= 4) {
-			state->toastSystem->addToast("HAND ALREADY FULL",
-										 position->position + glm::vec2{clickable->clickRect.w, 0});
+			state->toastSystem->addToast("HAND ALREADY FULL", glm::vec2{mouseWorldX, mouseWorldY});
 			return true;
 		}
 
 		if (deck->cards.empty()) {
-			state->toastSystem->addToast("DECK EMPTY",
-										 position->position + glm::vec2{clickable->clickRect.w, 0});
+			state->toastSystem->addToast("DECK EMPTY", glm::vec2{mouseWorldX, mouseWorldY});
 			return true;
 		}
 

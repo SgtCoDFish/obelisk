@@ -53,6 +53,7 @@ private:
 	void packAssets(el::Logger *logger);
 
 	APG::FontManager::font_handle font{-1};
+	APG::FontManager::font_handle bigFont{-1};
 
 	std::unique_ptr<ashley::Engine> engine;
 	PlayerInputSystem *playerInputSystem{nullptr};
@@ -69,6 +70,7 @@ private:
 	SDL_Rect cardPackRect; // the packed location of the card asset file
 	SDL_Rect smallCardPackRect; // the packed location of the small card asset file
 	SDL_Rect trashPackRect; // the packed location of the trash asset file
+	SDL_Rect speedUpgradePackRect; // the packed locatio of the speed upgrade file
 
 	std::unique_ptr<APG::Sprite> monkey;
 	std::unique_ptr<APG::Sprite> rabbit;
@@ -82,6 +84,7 @@ private:
 	std::unique_ptr<APG::Sprite> gunUpgradeSprite;
 	std::unique_ptr<APG::Sprite> rocketUpgradeSprite;
 	std::unique_ptr<APG::Sprite> plusUpgradeSprite;
+	std::unique_ptr<APG::Sprite> speedUpgradeSprite;
 
 	std::unique_ptr<APG::Sprite> gunAttackSprite;
 	std::unique_ptr<APG::Sprite> rocketAttackSprite;
@@ -99,7 +102,12 @@ private:
 	std::unique_ptr<APG::Sprite> smallRedCardBack;
 	std::unique_ptr<APG::Sprite> smallGreenCardBack;
 
+	APG::SpriteBase *pausedText{nullptr};
+
 	std::unique_ptr<ObeliskMap> map;
+
+	ashley::Entity *upgradeDeck{nullptr};
+	ashley::Entity *weaponDeck{nullptr};
 };
 
 }

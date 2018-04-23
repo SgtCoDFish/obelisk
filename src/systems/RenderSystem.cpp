@@ -44,6 +44,12 @@ void RenderSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 							renderable->secondaryPos.y + position->position.y);
 			}
 		}
+
+		auto annotation = annotationMapper.get(entity);
+		if (annotation != nullptr) {
+			batch->draw(annotation->sprite, position->position.x,
+						position->position.y + renderable->sprite->getHeight() + 10);
+		}
 	}
 }
 

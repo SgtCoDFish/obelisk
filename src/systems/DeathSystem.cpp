@@ -27,7 +27,6 @@ void DeathSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 	if (death->processAttack) {
 		auto attack = attackMapper.get(entity);
 		if (attack != nullptr && attack->target != nullptr) {
-			el::Loggers::getLogger("obelisk")->info("Would do %v", attack->damage);
 			auto monster = attack->target->getComponent<MonsterComponent>();
 			monster->hp -= attack->damage;
 
@@ -37,6 +36,11 @@ void DeathSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 				std::uniform_int_distribution<int> distribution{0, 3};
 				state->toastSystem->addToast(deathToasts[distribution(state->rand)], monsterPos->position);
 				attack->target->add<DeathComponent>();
+				state->killCount += 1;
+
+				if (state->killCount % 5 == 0) {
+					//
+				}
 			}
 		}
 	}

@@ -76,6 +76,7 @@ bool Obelisk::init() {
 	}
 
 	font = fontManager->loadFontFile("assets/pixel_square.ttf", 24);
+	bigFont = fontManager->loadFontFile("assets/pixel_square.ttf", 40);
 
 	state->currentMap = map.get();
 
@@ -123,14 +124,22 @@ void Obelisk::packAssets(el::Logger *logger) {
 		return;
 	}
 
+	auto maybeSpeed = packedAssets->insertFile("assets/speed_upgrade.png");
+	if (!maybeSpeed) {
+		logger->fatal("Couldn't pack required speed upgrade asset");
+		return;
+	}
+
 	packedAssets->commitPack();
 
 	this->animalPackRect = *maybeAnimals;
 	this->cardPackRect = *maybeCards;
 	this->smallCardPackRect = *maybeSmallCards;
 	this->trashPackRect = *maybeTrash;
+	this->speedUpgradePackRect = *maybeSpeed;
 
 	trashSprite = packedAssets->makeSpritePtr({trashPackRect.x, trashPackRect.y + 1, 100, 100});
+	speedUpgradeSprite = packedAssets->makeSpritePtr({speedUpgradePackRect.x + 1, speedUpgradePackRect.y + 1, 64, 64});
 
 	monkey = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 0), animalPackRect.y + (64 * 0), 64, 64});
 	rabbit = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 1), animalPackRect.y + (64 * 0), 64, 64});
@@ -158,6 +167,8 @@ void Obelisk::packAssets(el::Logger *logger) {
 	plusUpgradeSprite = map->renderer->getPackedTexture()->makeSpritePtr({13 * 64, 12 * 64 + 1, 64, 64});
 	gunAttackSprite = map->renderer->getPackedTexture()->makeSpritePtr({20 * 64, 11 * 64 + 1, 64, 64});
 	rocketAttackSprite = map->renderer->getPackedTexture()->makeSpritePtr({21 * 64, 10 * 64 + 1, 64, 64});
+
+	pausedText = fontManager->renderText(bigFont, "PRESS SPACE TO UNPAUSE", true, APG::FontRenderMethod::NICE);
 }
 
 void Obelisk::initECS(el::Logger *logger) {
@@ -182,59 +193,90 @@ void Obelisk::initECS(el::Logger *logger) {
 	const auto cardGapX = 5;
 	const auto cardGapY = 5;
 
-	auto displayedCard = engine->addEntity();
-	displayedCard->add<PositionComponent>(cardGapX, cardGapY);
-	displayedCard->add<RenderableComponent>(redCardFront.get(), gunUpgradeSprite.get());
-	displayedCard->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
-	displayedCard->add<CarryableComponent>(smallRedCardBack.get(), UpgradeType::TOWER_GUN_UPGRADE,
-										   gunUpgradeSprite.get());
-	displayedCard->add<CardComponent>();
-
-	auto displayedCard2 = engine->addEntity();
-	displayedCard2->add<PositionComponent>(cardGapX * 2 + blueCardFront->getWidth(), cardGapY);
-	displayedCard2->add<RenderableComponent>(blueCardFront.get(), rocketUpgradeSprite.get());
-	displayedCard2->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
-	displayedCard2->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_ROCKET_UPGRADE,
-											rocketUpgradeSprite.get());
-	displayedCard2->add<CardComponent>();
-
-	state->hand.push_back(displayedCard);
-	state->hand.push_back(displayedCard2);
-
 	{
-		auto displayedCard3 = std::make_unique<ashley::Entity>();
-		displayedCard3->add<PositionComponent>(cardGapX * 3 + greenCardFront->getWidth() * 2, cardGapY);
-		displayedCard3->add<RenderableComponent>(greenCardFront.get(), plusUpgradeSprite.get());
-		displayedCard3->add<ClickableComponent>(
-				SDL_Rect{0, 0, greenCardFront->getWidth(), greenCardFront->getHeight()});
-		displayedCard3->add<CarryableComponent>(smallGreenCardBack.get(), UpgradeType::LEVEL,
-												plusUpgradeSprite.get());
-		displayedCard3->add<CardComponent>();
+		upgradeDeck = engine->addEntity();
+		upgradeDeck->add<PositionComponent>((screenWidth - cardGapX) * 2 - greenCardBack->getWidth(),
+											cardGapY);
+		upgradeDeck->add<RenderableComponent>(greenCardBack.get());
+		upgradeDeck->add<DeckComponent>();
+		upgradeDeck->add<ClickableComponent>(SDL_Rect{0, 0, greenCardBack->getWidth(), greenCardBack->getHeight()});
+		upgradeDeck->add<AnnotationComponent>(
+				fontManager->renderText(font, "UPGRADES", false, APG::FontRenderMethod::NICE));
 
-		auto displayedCard4 = std::make_unique<ashley::Entity>();
-		displayedCard4->add<PositionComponent>(cardGapX * 3 + greenCardFront->getWidth() * 2, cardGapY);
-		displayedCard4->add<RenderableComponent>(greenCardFront.get(), plusUpgradeSprite.get());
-		displayedCard4->add<ClickableComponent>(
-				SDL_Rect{0, 0, greenCardFront->getWidth(), greenCardFront->getHeight()});
-		displayedCard4->add<CarryableComponent>(smallGreenCardBack.get(), UpgradeType::LEVEL,
-												plusUpgradeSprite.get());
-		displayedCard4->add<CardComponent>();
+		weaponDeck = engine->addEntity();
+		weaponDeck->add<PositionComponent>(
+				(screenWidth - 2 * cardGapX) * 2 - greenCardBack->getWidth() * 2,
+				cardGapY);
+		weaponDeck->add<RenderableComponent>(blueCardBack.get());
+		weaponDeck->add<DeckComponent>();
+		weaponDeck->add<ClickableComponent>(SDL_Rect{0, 0, blueCardBack->getWidth(), blueCardBack->getHeight()});
+		weaponDeck->add<AnnotationComponent>(
+				fontManager->renderText(font, "WEAPONS", false, APG::FontRenderMethod::NICE));
 
-		auto deck1 = engine->addEntity();
-		deck1->add<PositionComponent>(cardGapX, cardGapY * 2 + blueCardBack->getHeight());
-		deck1->add<RenderableComponent>(blueCardBack.get());
-		deck1->add<DeckComponent>();
-		deck1->add<ClickableComponent>(SDL_Rect{0, 0, blueCardBack->getWidth(), blueCardBack->getHeight()});
+		auto upgradeDeckComponent = upgradeDeck->getComponent<DeckComponent>();
+		auto weaponDeckComponent = weaponDeck->getComponent<DeckComponent>();
 
-		deck1->getComponent<DeckComponent>()->cards.emplace_front(std::move(displayedCard3));
-		deck1->getComponent<DeckComponent>()->cards.emplace_front(std::move(displayedCard4));
+		auto displayedCard1 = std::make_unique<ashley::Entity>();
+		displayedCard1->add<PositionComponent>(cardGapX, cardGapY);
+		displayedCard1->add<RenderableComponent>(redCardFront.get(), gunUpgradeSprite.get());
+		displayedCard1->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
+		displayedCard1->add<CarryableComponent>(smallRedCardBack.get(), UpgradeType::TOWER_GUN_UPGRADE,
+												gunUpgradeSprite.get());
+		displayedCard1->add<CardComponent>();
+
+		auto displayedCard2 = std::make_unique<ashley::Entity>();
+		displayedCard2->add<PositionComponent>(cardGapX * 2 + blueCardFront->getWidth(), cardGapY);
+		displayedCard2->add<RenderableComponent>(blueCardFront.get(), rocketUpgradeSprite.get());
+		displayedCard2->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
+		displayedCard2->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_ROCKET_UPGRADE,
+												rocketUpgradeSprite.get());
+		displayedCard2->add<CardComponent>();
+
+		// Add upgrade cards to deck
+		std::vector<std::unique_ptr<ashley::Entity>> upgradeEntities;
+		for (int i = 0; i < 4; ++i) {
+			auto levelUpgrade = std::make_unique<ashley::Entity>();
+			levelUpgrade->add<PositionComponent>(cardGapX * 3 + greenCardFront->getWidth() * 2, cardGapY);
+			levelUpgrade->add<RenderableComponent>(greenCardFront.get(), plusUpgradeSprite.get());
+			levelUpgrade->add<ClickableComponent>(
+					SDL_Rect{0, 0, greenCardFront->getWidth(), greenCardFront->getHeight()});
+			levelUpgrade->add<CarryableComponent>(smallGreenCardBack.get(), UpgradeType::LEVEL,
+												  plusUpgradeSprite.get());
+			levelUpgrade->add<CardComponent>();
+
+			upgradeEntities.emplace_back(std::move(levelUpgrade));
+		}
+
+		for (int i = 0; i < 3; ++i) {
+			auto levelUpgrade = std::make_unique<ashley::Entity>();
+			levelUpgrade->add<PositionComponent>(cardGapX * 3 + greenCardFront->getWidth() * 2, cardGapY);
+			levelUpgrade->add<RenderableComponent>(greenCardFront.get(), speedUpgradeSprite.get());
+			levelUpgrade->add<ClickableComponent>(
+					SDL_Rect{0, 0, greenCardFront->getWidth(), greenCardFront->getHeight()});
+			levelUpgrade->add<CarryableComponent>(smallGreenCardBack.get(), UpgradeType::SPEED,
+												  speedUpgradeSprite.get());
+			levelUpgrade->add<CardComponent>();
+
+			upgradeEntities.emplace_back(std::move(levelUpgrade));
+		}
+
+		std::shuffle(upgradeEntities.begin(), upgradeEntities.end(), state->rand);
+
+		for (auto &e : upgradeEntities) {
+			upgradeDeckComponent->cards.emplace_front(std::move(e));
+		}
+
+		weaponDeckComponent->cards.emplace_front(std::move(displayedCard1));
+		weaponDeckComponent->cards.emplace_front(std::move(displayedCard2));
 	}
 
 	{
 		auto trashEntity = engine->addEntity();
 		auto trashRenderable = std::make_unique<RenderableComponent>(trashSprite.get());
-		trashEntity->add<PositionComponent>((5), (screenHeight * 2) - trashSprite->getHeight() - 5);
+		trashEntity->add<PositionComponent>((5), (screenHeight - 20) * 2 - trashSprite->getHeight());
 		trashEntity->add<TrashComponent>();
+		trashEntity->add<AnnotationComponent>(
+				fontManager->renderText(font, "TRASH", false, APG::FontRenderMethod::NICE));
 		trashEntity->add<ClickableComponent>(SDL_Rect{0, 0, trashSprite->getWidth(), trashSprite->getHeight()});
 		trashEntity->add(std::move(trashRenderable));
 	}
@@ -265,25 +307,36 @@ void Obelisk::render(float deltaTime) {
 	glClearColor(0.18f, 0.80f, 0.44f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	auto positionMapper = ashley::ComponentMapper<PositionComponent>::getMapper();
-
-	for (int i = 0; i < (int) state->hand.size(); ++i) {
-		auto card = state->hand[i];
-		if (card->hasComponent<CarriedComponent>()) {
-			continue;
-		}
-
-		auto pos = positionMapper.get(card);
-		pos->position.x = 5 * (i + 1) + redCardBack->getWidth() * i;
-
-	}
-
 	camera->update();
 	spriteBatch->setProjectionMatrix(camera->combinedMatrix);
 
-	map->renderer->renderAllAndUpdate(deltaTime);
+	if (inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE)) {
+		state->paused = !state->paused;
+	}
 
-	engine->update(deltaTime);
+	if (state->paused) {
+		spriteBatch->begin();
+		const auto textX = ((int) screenWidth - (pausedText->getWidth() / 2));
+		spriteBatch->draw(pausedText, textX, screenHeight / 2.0f * 2.0f);
+		spriteBatch->end();
+	} else {
+		auto positionMapper = ashley::ComponentMapper<PositionComponent>::getMapper();
+
+		for (int i = 0; i < (int) state->hand.size(); ++i) {
+			auto card = state->hand[i];
+			if (card->hasComponent<CarriedComponent>()) {
+				continue;
+			}
+
+			auto pos = positionMapper.get(card);
+			pos->position.x = 5 * (i + 1) + redCardBack->getWidth() * i;
+
+		}
+
+		map->renderer->renderAllAndUpdate(deltaTime);
+
+		engine->update(deltaTime);
+	}
 
 	SDL_GL_SwapWindow(window.get());
 }

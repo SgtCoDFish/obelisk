@@ -26,6 +26,10 @@ struct ObeliskState {
 	ToastSystem *toastSystem{nullptr};
 
 	std::vector<ashley::Entity *> hand;
+
+	int killCount {0};
+
+	bool paused{false};
 };
 
 }
