@@ -5,6 +5,7 @@
 
 #include <Ashley/systems/IntervalSystem.hpp>
 #include <ObeliskState.hpp>
+#include <MonsterStat.hpp>
 
 namespace ashley {
 class Engine;
@@ -15,7 +16,7 @@ namespace obelisk {
 class EntitySpawnSystem final : public ashley::IntervalSystem {
 public:
 	explicit EntitySpawnSystem(int64_t priority, float interval, ObeliskState *state,
-							   std::vector<APG::SpriteBase *> sprites);
+							   std::vector<APG::SpriteBase *> sprites, std::vector<MonsterStats> monsterStats);
 
 	void addedToEngine(ashley::Engine &engine) override;
 
@@ -29,6 +30,7 @@ private:
 	ObeliskState *state{nullptr};
 
 	std::vector<APG::SpriteBase *> sprites;
+	std::vector<MonsterStats> monsterStats;
 	APG::SpriteBase * lastSprite;
 };
 

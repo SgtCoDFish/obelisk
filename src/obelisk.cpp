@@ -68,7 +68,7 @@ bool Obelisk::init() {
 		auto tmxRenderer = std::make_unique<APG::PackedTmxRenderer>("assets/map.tmx", spriteBatch.get(), 2048, 1024);
 		glm::vec2 tmxRendererPos{
 				(screenWidth * 0.95f - (tmxRenderer->getPixelWidth() / zoom)) * 2.0f,
-				(screenHeight - (tmxRenderer->getPixelHeight() / zoom)),
+				(screenHeight * 2 - (tmxRenderer->getPixelHeight())),
 		};
 		tmxRenderer->setPosition(tmxRendererPos);
 
@@ -130,7 +130,7 @@ void Obelisk::packAssets(el::Logger *logger) {
 	this->smallCardPackRect = *maybeSmallCards;
 	this->trashPackRect = *maybeTrash;
 
-	trashSprite = packedAssets->makeSpritePtr({trashPackRect.x, trashPackRect.y, 100, 100});
+	trashSprite = packedAssets->makeSpritePtr({trashPackRect.x, trashPackRect.y + 1, 100, 100});
 
 	monkey = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 0), animalPackRect.y + (64 * 0), 64, 64});
 	rabbit = packedAssets->makeSpritePtr({animalPackRect.x + (64 * 1), animalPackRect.y + (64 * 0), 64, 64});
@@ -179,8 +179,11 @@ void Obelisk::initECS(el::Logger *logger) {
 
 	logger->info("Created %v tower bases", towerObjects.size());
 
+	const auto cardGapX = 5;
+	const auto cardGapY = 5;
+
 	auto displayedCard = engine->addEntity();
-	displayedCard->add<PositionComponent>(10, 10);
+	displayedCard->add<PositionComponent>(cardGapX, cardGapY);
 	displayedCard->add<RenderableComponent>(redCardFront.get(), gunUpgradeSprite.get());
 	displayedCard->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
 	displayedCard->add<CarryableComponent>(smallRedCardBack.get(), UpgradeType::TOWER_GUN_UPGRADE,
@@ -188,7 +191,7 @@ void Obelisk::initECS(el::Logger *logger) {
 	displayedCard->add<CardComponent>();
 
 	auto displayedCard2 = engine->addEntity();
-	displayedCard2->add<PositionComponent>(10 * 2 + blueCardFront->getWidth(), 10);
+	displayedCard2->add<PositionComponent>(cardGapX * 2 + blueCardFront->getWidth(), cardGapY);
 	displayedCard2->add<RenderableComponent>(blueCardFront.get(), rocketUpgradeSprite.get());
 	displayedCard2->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
 	displayedCard2->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_ROCKET_UPGRADE,
@@ -200,7 +203,7 @@ void Obelisk::initECS(el::Logger *logger) {
 
 	{
 		auto displayedCard3 = std::make_unique<ashley::Entity>();
-		displayedCard3->add<PositionComponent>(10 * 3 + greenCardFront->getWidth() * 2, 10);
+		displayedCard3->add<PositionComponent>(cardGapX * 3 + greenCardFront->getWidth() * 2, cardGapY);
 		displayedCard3->add<RenderableComponent>(greenCardFront.get(), plusUpgradeSprite.get());
 		displayedCard3->add<ClickableComponent>(
 				SDL_Rect{0, 0, greenCardFront->getWidth(), greenCardFront->getHeight()});
@@ -208,20 +211,29 @@ void Obelisk::initECS(el::Logger *logger) {
 												plusUpgradeSprite.get());
 		displayedCard3->add<CardComponent>();
 
+		auto displayedCard4 = std::make_unique<ashley::Entity>();
+		displayedCard4->add<PositionComponent>(cardGapX * 3 + greenCardFront->getWidth() * 2, cardGapY);
+		displayedCard4->add<RenderableComponent>(greenCardFront.get(), plusUpgradeSprite.get());
+		displayedCard4->add<ClickableComponent>(
+				SDL_Rect{0, 0, greenCardFront->getWidth(), greenCardFront->getHeight()});
+		displayedCard4->add<CarryableComponent>(smallGreenCardBack.get(), UpgradeType::LEVEL,
+												plusUpgradeSprite.get());
+		displayedCard4->add<CardComponent>();
+
 		auto deck1 = engine->addEntity();
-		deck1->add<PositionComponent>(10, 10 * 3 + blueCardBack->getHeight() * 2);
+		deck1->add<PositionComponent>(cardGapX, cardGapY * 2 + blueCardBack->getHeight());
 		deck1->add<RenderableComponent>(blueCardBack.get());
 		deck1->add<DeckComponent>();
 		deck1->add<ClickableComponent>(SDL_Rect{0, 0, blueCardBack->getWidth(), blueCardBack->getHeight()});
 
 		deck1->getComponent<DeckComponent>()->cards.emplace_front(std::move(displayedCard3));
+		deck1->getComponent<DeckComponent>()->cards.emplace_front(std::move(displayedCard4));
 	}
 
 	{
 		auto trashEntity = engine->addEntity();
 		auto trashRenderable = std::make_unique<RenderableComponent>(trashSprite.get());
-		trashEntity->add<PositionComponent>((screenWidth - rendererPos.x),
-											(screenHeight - trashSprite->getHeight()) * 2);
+		trashEntity->add<PositionComponent>((5), (screenHeight * 2) - trashSprite->getHeight() - 5);
 		trashEntity->add<TrashComponent>();
 		trashEntity->add<ClickableComponent>(SDL_Rect{0, 0, trashSprite->getWidth(), trashSprite->getHeight()});
 		trashEntity->add(std::move(trashRenderable));
@@ -231,7 +243,9 @@ void Obelisk::initECS(el::Logger *logger) {
 			500, 10.0f, state.get(),
 			std::vector<APG::SpriteBase *>(
 					{giraffe.get(), monkey.get(), rabbit.get(), snake.get(), pig.get()}
-			)
+			),
+			std::vector<MonsterStats>({MonsterStats{2.0f}, MonsterStats{0.75f}, MonsterStats{0.5f}, MonsterStats{1.0f},
+									   MonsterStats{2.5f}})
 	);
 	engine->addSystem<RenderSystem>(spriteBatch.get(), 1000);
 	engine->addSystem<CarrySystem>(inputManager.get(), 2500);
@@ -258,7 +272,7 @@ void Obelisk::render(float deltaTime) {
 		}
 
 		auto pos = positionMapper.get(card);
-		pos->position.x = 10 * (i + 1) + redCardBack->getWidth() * i;
+		pos->position.x = 5 * (i + 1) + redCardBack->getWidth() * i;
 
 	}
 
@@ -313,8 +327,8 @@ int main(int argc, char *argv[]) {
 	START_EASYLOGGINGPP(argc, argv);
 
 	const std::string windowTitle("obelisk");
-	const uint32_t windowWidth = 800;
-	const uint32_t windowHeight = 480;
+	const uint32_t windowWidth = 560;
+	const uint32_t windowHeight = 460;
 
 	APG::Game::setLoggerToAPGStyle("obelisk");
 	const auto logger = el::Loggers::getLogger("obelisk");

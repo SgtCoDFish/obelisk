@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <components/DeathComponent.hpp>
+#include <easylogging++.h>
 
 namespace obelisk {
 
@@ -16,6 +17,11 @@ void MovementSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 	const auto move = moveMapper.get(entity);
 
 	if (move->hasEntityTarget) {
+		if(move->entityTarget == nullptr) {
+			entity->add<DeathComponent>();
+			return;
+		}
+
 		move->target = positionMapper.get(move->entityTarget)->position;
 	}
 
@@ -33,4 +39,26 @@ void MovementSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 
 	position->position = glm::mix(position->position, move->target, move->elapsed / move->duration);
 }
+
+void MovementSystem::addedToEngine(ashley::Engine &engine) {
+	IteratingSystem::addedToEngine(engine);
+	engine.addEntityListener(this);
+}
+
+void MovementSystem::removedFromEngine(ashley::Engine &engine) {
+	engine.removeEntityListener(this);
+	IteratingSystem::removedFromEngine(engine);
+}
+
+void MovementSystem::entityRemoved(ashley::Entity &entity) {
+	// avoid segfaulting if we're targeting an entity which gets destroyed
+	for (const auto &e : *entities) {
+		const auto move = moveMapper.get(e);
+
+		if (move->entityTarget == &entity) {
+			move->entityTarget = nullptr;
+		}
+	}
+}
+
 }

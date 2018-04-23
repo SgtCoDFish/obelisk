@@ -41,20 +41,22 @@ void TowerUpgradeSystem::processEntity(ashley::Entity *entity, float deltaTime) 
 
 	if (towerUpgrade->timeRemaining <= 0.0f) {
 		const auto position = positionMapper.get(entity);
-		state->toastSystem->addToast("UPGRADE COMPLETE", position->position);
 		if (towerUpgrade->upgradeType == UpgradeType::TOWER_GUN_UPGRADE) {
+			state->toastSystem->addToast("GUN UPGRADE COMPLETE", position->position);
 			renderable->setSecondary(gunUpgrade);
 			tower->upgradeType = towerUpgrade->upgradeType;
 			tower->level++;
 			tower->range = renderable->sprite->getWidth() * 5;
 			tower->attackCooldown = 2.0f;
 		} else if (towerUpgrade->upgradeType == UpgradeType::TOWER_ROCKET_UPGRADE) {
+			state->toastSystem->addToast("ROCKET UPGRADE COMPLETE", position->position);
 			renderable->setSecondary(rocketUpgrade);
 			tower->upgradeType = towerUpgrade->upgradeType;
 			tower->level++;
 			tower->range = renderable->sprite->getWidth() * 10;
 			tower->attackCooldown = 5.0f;
 		} else if (towerUpgrade->upgradeType == UpgradeType::LEVEL) {
+			state->toastSystem->addToast("LEVEL UPGRADE COMPLETE", position->position);
 			tower->level++;
 			renderable->setSecondary(towerUpgrade->secondarySprite);
 		} else {

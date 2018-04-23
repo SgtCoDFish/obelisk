@@ -8,12 +8,15 @@
 
 namespace obelisk {
 
-
 EntitySpawnSystem::EntitySpawnSystem(int64_t priority, float interval, ObeliskState *state,
-									 std::vector<APG::SpriteBase *> sprites) :
+									 std::vector<APG::SpriteBase *> sprites, std::vector<MonsterStats> monsterStats) :
 		IntervalSystem(interval, priority),
 		state{state},
-		sprites{std::move(sprites)} {
+		sprites{std::move(sprites)},
+		monsterStats{std::move(monsterStats)} {
+	if (this->sprites.size() != this->monsterStats.size()) {
+		el::Loggers::getLogger("obelisk")->error("error; monstersprites != monsterstats lengthwise");
+	}
 }
 
 void EntitySpawnSystem::addedToEngine(ashley::Engine &engine) {
@@ -31,8 +34,12 @@ void EntitySpawnSystem::updateInterval() {
 	auto distribution = std::uniform_int_distribution<>{0, static_cast<int>(sprites.size() - 1)};
 
 	APG::SpriteBase *sprite{nullptr};
+	MonsterStats *stats{nullptr};
+
 	while (sprite == nullptr || sprite == lastSprite) {
-		sprite = sprites[distribution(state->rand)];
+		const auto choice = distribution(state->rand);
+		sprite = sprites[choice];
+		stats = &monsterStats[choice];
 	}
 
 	lastSprite = sprite;
@@ -42,7 +49,7 @@ void EntitySpawnSystem::updateInterval() {
 	newMonster->add<PositionComponent>(renderer->getPosition().x + renderer->getPixelWidth(),
 									   renderer->getPosition().y +
 									   (renderer->getPixelHeight() - sprite->getHeight()) / 2.0f);
-	newMonster->add<WalkerComponent>(1.0f);
+	newMonster->add<WalkerComponent>(stats->timeToMove);
 	newMonster->add<RenderableComponent>(std::move(renderable));
 	newMonster->add<MonsterComponent>();
 }
