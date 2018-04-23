@@ -7,7 +7,10 @@ namespace obelisk {
 
 class MonsterComponent final : public ashley::Component {
 public:
-	explicit MonsterComponent() = default;
+	explicit MonsterComponent(int hp) : maxHP{hp}, hp{hp} {}
+
+	int maxHP;
+	int hp;
 };
 
 }

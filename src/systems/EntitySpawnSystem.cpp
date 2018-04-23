@@ -51,7 +51,7 @@ void EntitySpawnSystem::updateInterval() {
 									   (renderer->getPixelHeight() - sprite->getHeight()) / 2.0f);
 	newMonster->add<WalkerComponent>(stats->timeToMove);
 	newMonster->add<RenderableComponent>(std::move(renderable));
-	newMonster->add<MonsterComponent>();
+	newMonster->add<MonsterComponent>(stats->hp);
 }
 
 }

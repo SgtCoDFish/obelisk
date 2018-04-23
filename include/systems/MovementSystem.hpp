@@ -19,8 +19,9 @@ public:
 
 	void removedFromEngine(ashley::Engine &engine) override;
 
-	void entityAdded(ashley::Entity &entity) {}
-	void entityRemoved(ashley::Entity &entity) override ;
+	void entityAdded(ashley::Entity &entity) override {}
+
+	void entityRemoved(ashley::Entity &entity) override;
 
 private:
 	ashley::ComponentMapper<PositionComponent> positionMapper{ashley::ComponentMapper<PositionComponent>::getMapper()};

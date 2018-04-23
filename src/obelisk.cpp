@@ -75,7 +75,7 @@ bool Obelisk::init() {
 		map = std::make_unique<ObeliskMap>(std::move(tmxRenderer));
 	}
 
-	font = fontManager->loadFontFile("assets/pixel_square.ttf", 16);
+	font = fontManager->loadFontFile("assets/pixel_square.ttf", 24);
 
 	state->currentMap = map.get();
 
@@ -244,8 +244,10 @@ void Obelisk::initECS(el::Logger *logger) {
 			std::vector<APG::SpriteBase *>(
 					{giraffe.get(), monkey.get(), rabbit.get(), snake.get(), pig.get()}
 			),
-			std::vector<MonsterStats>({MonsterStats{2.0f}, MonsterStats{0.75f}, MonsterStats{0.5f}, MonsterStats{1.0f},
-									   MonsterStats{2.5f}})
+			std::vector<MonsterStats>(
+					{MonsterStats{16, 2.0f}, MonsterStats{8, 0.75f}, MonsterStats{5, 0.5f}, MonsterStats{13, 1.0f},
+					 MonsterStats{20, 2.5f}
+					})
 	);
 	engine->addSystem<RenderSystem>(spriteBatch.get(), 1000);
 	engine->addSystem<CarrySystem>(inputManager.get(), 2500);

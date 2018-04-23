@@ -4,8 +4,9 @@
 namespace obelisk {
 
 struct MonsterStats {
-	explicit MonsterStats(float timeToMove) : timeToMove{timeToMove} {}
+	explicit MonsterStats(int hp, float timeToMove) : hp{hp}, timeToMove{timeToMove} {}
 
+	const int hp;
 	const float timeToMove;
 };
 

@@ -31,7 +31,7 @@ void MovementSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 		entity->remove<MoveComponent>();
 
 		if (move->dieOnImpact) {
-			entity->add<DeathComponent>();
+			entity->add<DeathComponent>(true);
 		}
 
 		return;

@@ -7,7 +7,9 @@ namespace obelisk {
 
 class DeathComponent final : public ashley::Component {
 public:
-	explicit DeathComponent() = default;
+	explicit DeathComponent(bool processAttack = false) : processAttack{processAttack} {}
+
+	bool processAttack;
 };
 
 }

@@ -50,15 +50,15 @@ void TowerAttackSystem::doAttack(PositionComponent *position, TowerComponent *to
 		}
 	}
 
-	logger->verbose(9, "Chose mob #%v for attack", shortestIndex);
-
 	if (shortestDistance > tower->range) {
 		logger->verbose(9, "No mob is in range");
 		tower->timeToAttack = tower->attackCooldown / 2.0f;
 		return;
 	}
 
-	logger->verbose(9, "Performing attack");
+	auto target = monsterEntities->at(shortestIndex);
+	logger->verbose(9, "Chose mob #%v for attack", shortestIndex);
+
 	tower->timeToAttack = tower->attackCooldown;
 
 	auto attackEntity = getEngine()->addEntity();
@@ -67,16 +67,16 @@ void TowerAttackSystem::doAttack(PositionComponent *position, TowerComponent *to
 	float moveDuration;
 	if (tower->upgradeType == UpgradeType::TOWER_ROCKET_UPGRADE) {
 		attackEntity->add<RenderableComponent>(rocketAttackSprite);
-		moveDuration = 2.5f;
-		attackDamage = 10 + 2 * tower->level;
+		moveDuration = 3.5f;
+		attackDamage = 6 + 2 * tower->level;
 	} else /*if(tower->upgradeType == UpgradeType::TOWER_GUN_UPGRADE)*/ {
 		attackEntity->add<RenderableComponent>(gunAttackSprite);
-		moveDuration = 1.0f;
-		attackDamage = 3 + tower->level;
+		moveDuration = 1.5f;
+		attackDamage = 2 + tower->level;
 	}
 	attackEntity->add<PositionComponent>(position->position);
 	attackEntity->add<MoveComponent>(monsterEntities->at(shortestIndex), moveDuration, true);
-	attackEntity->add<AttackComponent>(attackDamage);
+	attackEntity->add<AttackComponent>(target, attackDamage);
 }
 
 void TowerAttackSystem::addedToEngine(ashley::Engine &engine) {
