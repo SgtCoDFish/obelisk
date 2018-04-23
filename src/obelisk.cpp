@@ -36,6 +36,9 @@
 #include <components/CardComponent.hpp>
 
 INITIALIZE_EASYLOGGINGPP
+#if defined (__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
 
 namespace obelisk {
 #if defined (__EMSCRIPTEN__)
@@ -328,7 +331,7 @@ int main(int argc, char *argv[]) {
 	arg.logger = logger;
 
 #if defined(__EMSCRIPTEN__)
-	emscripten_set_main_loop_arg(loop, &arg, 0, 1);
+	::emscripten_set_main_loop_arg(loop, &arg, 0, 1);
 #else
 	while (!arg.done) {
 		loop(&arg);
