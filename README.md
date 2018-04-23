@@ -2,6 +2,25 @@
 A tower-defence card game - theme "combine two incompatible genres"
 
 ## Devlog
+### Day 2: 22-04-2018
+The best way to start the morning was, I decided, to test the build on my macOS machine using clang, since I'd spent
+the first day entirely on Debian Stretch with gcc. This immediately highlighted a missing include, and then more urgently
+highlighted a segfault which doesn't occur under Linux. Running valgrind didn't help, as it immediately died complaining
+of an illegal processor instruction, which seems to be an upstream bug.
+
+The fix was easy enough once I'd found a sane way to debug it; turns out Linux is more forgiving when it comes to accessing OpenGL
+functions before a context has been created. This kind of bug is common in APG, since it tries to do the heavy lifting
+for you and initialise all of SDL2 and OpenGL. In a future refactor I think I'll have to think of sacrificing a little of
+the veil of magic and forcing the user to call a provided function to initialise SDL/GL. This will also remove a good chunk
+of the `unique_ptr` "hell" that's all over the APG codebase, limiting use of regular objects.
+
+I cracked on again, and by the end of the day had a much more smooth, game-like application, without actually having any real
+gameplay once again. That said, I feel like the gameplay will flow pretty quickly on Day 3 - I've done a lot of prep work.
+
+At the end of the day I did a little testing of emscripten, which worked fantastically. I'm very hopeful that distributing
+the game in the browser will work, making native build gravy rather than a requirement.
+
+
 ### Day 1: 21-04-2018
 I started Ludum Dare as I often start a game jam; throwing together a build system I can live with, spending slightly
 too long on it and then getting started properly after that. It seems to be a constant theme for me that my code and
