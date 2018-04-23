@@ -31,7 +31,11 @@ public:
 
 	void processEntity(ashley::Entity *entity, float deltaTime) override;
 
+	void addedToEngine(ashley::Engine &engine) override;
+	void removedFromEngine(ashley::Engine &engine) override;
+
 private:
+	ashley::Engine *engine{nullptr};
 	APG::SDLInputManager *inputManager;
 	APG::Camera *camera;
 

@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <Ashley/core/Component.hpp>
+#include <UpgradeType.hpp>
 
 namespace obelisk {
 
@@ -16,9 +17,9 @@ public:
 
 	std::string name;
 
-	bool hasWeapon {false};
+	UpgradeType upgradeType{UpgradeType::NONE};
 	int level{0};
-	float range{64};
+	float range{64 * 5};
 
 	float attackCooldown{10.0f};
 	float timeToAttack{10.0f};

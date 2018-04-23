@@ -29,7 +29,7 @@ void TowerUpgradeSystem::processEntity(ashley::Entity *entity, float deltaTime) 
 	if (!towerUpgrade->applied) {
 		towerUpgrade->applied = true;
 
-		if(tower->hasWeapon && renderable->secondary != nullptr) {
+		if(tower->upgradeType != UpgradeType::NONE && renderable->secondary != nullptr) {
 			towerUpgrade->secondarySprite = renderable->secondary;
 			towerUpgrade->secondarySpritePos = renderable->secondaryPos;
 		}
@@ -44,12 +44,16 @@ void TowerUpgradeSystem::processEntity(ashley::Entity *entity, float deltaTime) 
 		state->toastSystem->addToast("UPGRADE COMPLETE", position->position);
 		if (towerUpgrade->upgradeType == UpgradeType::TOWER_GUN_UPGRADE) {
 			renderable->setSecondary(gunUpgrade);
-			tower->hasWeapon = true;
+			tower->upgradeType = towerUpgrade->upgradeType;
 			tower->level++;
+			tower->range = renderable->sprite->getWidth() * 5;
+			tower->attackCooldown = 2.0f;
 		} else if (towerUpgrade->upgradeType == UpgradeType::TOWER_ROCKET_UPGRADE) {
 			renderable->setSecondary(rocketUpgrade);
-			tower->hasWeapon = true;
+			tower->upgradeType = towerUpgrade->upgradeType;
 			tower->level++;
+			tower->range = renderable->sprite->getWidth() * 10;
+			tower->attackCooldown = 5.0f;
 		} else if (towerUpgrade->upgradeType == UpgradeType::LEVEL) {
 			tower->level++;
 			renderable->setSecondary(towerUpgrade->secondarySprite);

@@ -14,12 +14,18 @@
 namespace obelisk {
 
 struct ObeliskState {
+	explicit ObeliskState() {
+		hand.reserve(4);
+	}
+
 	ashley::Entity *heldItem{nullptr};
 	ObeliskMap *currentMap{nullptr};
 	std::mt19937_64 rand{static_cast<unsigned long>(
 								 std::chrono::high_resolution_clock::now().time_since_epoch().count()
 						 )};
-	ToastSystem * toastSystem{nullptr};
+	ToastSystem *toastSystem{nullptr};
+
+	std::vector<ashley::Entity *> hand;
 };
 
 }

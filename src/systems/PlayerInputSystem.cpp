@@ -6,9 +6,12 @@
 #include <easylogging++.h>
 
 #include <glm/detail/type_mat4x4.hpp>
+
 #include <components/CarriedComponent.hpp>
 #include <components/DeathComponent.hpp>
 #include <components/TowerUpgradeComponent.hpp>
+
+#include <Ashley/Ashley.hpp>
 
 namespace obelisk {
 
@@ -65,7 +68,7 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 
 		auto carryable = carryableMapper.get(carriedEntity);
 
-		if (carryable->upgradeType == UpgradeType::LEVEL && !tower->hasWeapon) {
+		if (carryable->upgradeType == UpgradeType::LEVEL && tower->upgradeType == UpgradeType::NONE) {
 			state->toastSystem->addToast("NO WEAPON TO UPGRADE", position->position);
 			return false;
 		}
@@ -107,6 +110,21 @@ PlayerInputSystem::processPickup(ashley::Entity *entity, PositionComponent *posi
 	const auto deck = deckMapper.get(entity);
 	if (deck != nullptr) {
 		el::Loggers::getLogger("obelisk")->info("deck");
+		if (state->hand.size() >= 4) {
+			state->toastSystem->addToast("HAND ALREADY FULL",
+										 position->position + glm::vec2{clickable->clickRect.w, 0});
+			return true;
+		}
+
+		if (deck->cards.empty()) {
+			state->toastSystem->addToast("DECK EMPTY",
+										 position->position + glm::vec2{clickable->clickRect.w, 0});
+			return true;
+		}
+
+		auto newCard = engine->addEntity(std::move(deck->cards.front()));
+		deck->cards.pop_front();
+		state->hand.push_back(newCard);
 		return true;
 	}
 
@@ -136,6 +154,16 @@ bool PlayerInputSystem::isInside(PositionComponent *position, ClickableComponent
 
 	return (mouseWorldX >= intersectX1 && mouseWorldX < intersectX2 && mouseWorldY >= intersectY1 &&
 			mouseWorldY < intersectY2);
+}
+
+void PlayerInputSystem::addedToEngine(ashley::Engine &engine) {
+	this->engine = &engine;
+	IteratingSystem::addedToEngine(engine);
+}
+
+void PlayerInputSystem::removedFromEngine(ashley::Engine &engine) {
+	this->engine = nullptr;
+	IteratingSystem::removedFromEngine(engine);
 }
 
 }

@@ -83,6 +83,9 @@ private:
 	std::unique_ptr<APG::Sprite> rocketUpgradeSprite;
 	std::unique_ptr<APG::Sprite> plusUpgradeSprite;
 
+	std::unique_ptr<APG::Sprite> gunAttackSprite;
+	std::unique_ptr<APG::Sprite> rocketAttackSprite;
+
 	std::unique_ptr<APG::Sprite> constructionOverlay;
 
 	std::unique_ptr<APG::Sprite> blueCardFront;
