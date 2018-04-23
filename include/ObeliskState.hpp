@@ -34,11 +34,13 @@ struct ObeliskState {
 
 	bool paused{true};
 
-	float drawCooldown{6.0f};
-	float timeToDraw{1.0f};
+	float drawCooldown{3.0f};
+	float timeToDraw{2.0f};
 
 	int screenWidth{0};
 	int screenHeight{0};
+
+	int lives{3};
 };
 
 }

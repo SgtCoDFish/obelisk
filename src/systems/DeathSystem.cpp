@@ -40,12 +40,14 @@ void DeathSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 				attack->target->add<DeathComponent>();
 				state->killCount += 1;
 
-				if (state->killCount % 4 == 0) {
+				if (state->killCount % 3 == 0) {
 					const auto intensifyEntity = getEngine()->addEntity();
 					intensifyEntity->add<IntensificationComponent>(state->killCount);
 				}
 			}
 		}
+	} else if(death->takeALife) {
+		state->lives -= 1;
 	}
 
 	this->getEngine()->removeEntity(entity);

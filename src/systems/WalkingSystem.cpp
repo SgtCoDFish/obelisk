@@ -102,7 +102,7 @@ void WalkingSystem::handleStep(ashley::Entity *entity, WalkerComponent *walker, 
 	//logger->info("Entity is at %v, %v", );
 
 	if (entityTilePos == map->traversibleEnd) {
-		entity->add<DeathComponent>();
+		entity->add<DeathComponent>(glm::vec2{0,0});
 		return;
 	}
 

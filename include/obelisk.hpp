@@ -52,7 +52,10 @@ private:
 
 	void packAssets(el::Logger *logger);
 
+	float elapsed{0.0f};
+
 	APG::FontManager::font_handle font{-1};
+	APG::FontManager::font_handle medFont{-1};
 	APG::FontManager::font_handle bigFont{-1};
 
 	std::unique_ptr<ashley::Engine> engine;
@@ -103,9 +106,16 @@ private:
 	std::unique_ptr<APG::Sprite> smallGreenCardBack;
 
 	APG::SpriteBase *pausedText{nullptr};
+	APG::SpriteBase *victoryText{nullptr};
+	APG::SpriteBase *victorySubText{nullptr};
+	APG::SpriteBase *failureText{nullptr};
+	APG::SpriteBase *failureSubText{nullptr};
+
+	APG::SpriteBase *livesText{nullptr};
+	int livesTextNum{-1};
 
 	std::unique_ptr<ObeliskMap> map;
-
+bool resumeVictory {false};
 	ashley::Entity *deck{nullptr};
 };
 

@@ -76,7 +76,7 @@ void TowerAttackSystem::doAttack(PositionComponent *position, TowerComponent *to
 		attackDamage = 6 + 2 * tower->level;
 	} else /*if(tower->upgradeType == UpgradeType::TOWER_GUN_UPGRADE)*/ {
 		attackEntity->add<RenderableComponent>(gunAttackSprite);
-		moveDuration = 1.5f;
+		moveDuration = 1.0f;
 		attackDamage = 2 + tower->level;
 	}
 	attackEntity->add<PositionComponent>(position->position);

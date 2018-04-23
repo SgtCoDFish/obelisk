@@ -77,6 +77,7 @@ bool Obelisk::init() {
 	}
 
 	font = fontManager->loadFontFile("assets/pixel_square.ttf", 24);
+	medFont = fontManager->loadFontFile("assets/pixel_square.ttf", 32);
 	bigFont = fontManager->loadFontFile("assets/pixel_square.ttf", 40);
 
 	state->currentMap = map.get();
@@ -172,6 +173,10 @@ void Obelisk::packAssets(el::Logger *logger) {
 	rocketAttackSprite = map->renderer->getPackedTexture()->makeSpritePtr({21 * 64, 10 * 64 + 1, 64, 64});
 
 	pausedText = fontManager->renderText(bigFont, "PRESS SPACE TO UNPAUSE", true, APG::FontRenderMethod::NICE);
+	victoryText = fontManager->renderText(bigFont, "YOU SURVIVED!", true, APG::FontRenderMethod::NICE);
+	victorySubText = fontManager->renderText(medFont, "SPACE TO KEEP PLAYING", true, APG::FontRenderMethod::NICE);
+	failureText = fontManager->renderText(bigFont, "YOU DIED!", true, APG::FontRenderMethod::NICE);
+	failureSubText = fontManager->renderText(medFont, "REFRESH TO TRY AGAIN!", true, APG::FontRenderMethod::NICE);
 }
 
 void Obelisk::initECS(el::Logger *logger) {
@@ -271,7 +276,7 @@ void Obelisk::initECS(el::Logger *logger) {
 			std::shuffle(cardEntities.begin(), cardEntities.end(), state->rand);
 
 			for (int i = 0; i < (int) cardEntities.size(); ++i) {
-				if (i >= 1) {
+				if (i >= 2) {
 					break;
 				}
 
@@ -330,16 +335,44 @@ void Obelisk::render(float deltaTime) {
 	camera->update();
 	spriteBatch->setProjectionMatrix(camera->combinedMatrix);
 
-	if (inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE)) {
-		state->paused = !state->paused;
-	}
-
-	if (state->paused) {
+	if (elapsed > (60 * 4) && !resumeVictory) {
+		if (inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE)) {
+			resumeVictory = true;
+		} else {
+			spriteBatch->begin();
+			const auto textX = ((int) screenWidth - (victoryText->getWidth() / 2));
+			const auto subTextX = ((int) screenWidth - (victorySubText->getWidth() / 2));
+			spriteBatch->draw(victoryText, textX, screenHeight / 2.0f * 2.0f);
+			spriteBatch->draw(victorySubText, subTextX, 3 * (screenHeight / 2.0f * 2.0f) / 2);
+			spriteBatch->end();
+		}
+	} else if (state->lives <= 0) {
+		spriteBatch->begin();
+		const auto textX = ((int) screenWidth - (failureText->getWidth() / 2));
+		const auto subTextX = ((int) screenWidth - (failureSubText->getWidth() / 2));
+		spriteBatch->draw(failureText, textX, screenHeight / 2.0f * 2.0f);
+		spriteBatch->draw(failureSubText, subTextX, 3 * (screenHeight / 2.0f * 2.0f) / 2);
+		spriteBatch->end();
+	} else if (state->paused) {
+		if (inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE)) {
+			state->paused = !state->paused;
+		}
 		spriteBatch->begin();
 		const auto textX = ((int) screenWidth - (pausedText->getWidth() / 2));
 		spriteBatch->draw(pausedText, textX, screenHeight / 2.0f * 2.0f);
 		spriteBatch->end();
 	} else {
+		elapsed += deltaTime;
+
+		if (state->lives != livesTextNum) {
+			const std::string livesTmp = "LIVES: " + std::to_string(state->lives);
+			livesText = fontManager->renderText(font, livesTmp, true, APG::FontRenderMethod::NICE);
+			livesTextNum = state->lives;
+		}
+
+		if (inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE)) {
+			state->paused = !state->paused;
+		}
 		auto positionMapper = ashley::ComponentMapper<PositionComponent>::getMapper();
 
 		for (int i = 0; i < (int) state->hand.size(); ++i) {
@@ -356,6 +389,10 @@ void Obelisk::render(float deltaTime) {
 		map->renderer->renderAllAndUpdate(deltaTime);
 
 		engine->update(deltaTime);
+
+		spriteBatch->begin();
+		spriteBatch->draw(livesText, screenWidth - (livesText->getWidth() / 2), 20 + redCardBack->getHeight());
+		spriteBatch->end();
 	}
 
 	SDL_GL_SwapWindow(window.get());

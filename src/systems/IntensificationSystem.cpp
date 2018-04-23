@@ -28,15 +28,20 @@ void IntensificationSystem::processEntity(ashley::Entity *entity, float deltaTim
 	auto comp = ashley::ComponentMapper<IntensificationComponent>::getMapper().get(entity);
 	const auto textX = (state->screenWidth - (80 / 2));
 	const auto textY = (state->screenHeight / 2.0f * 2.0f);
-	if (comp->level % 8 == 0) {
+	if (comp->level % 6 == 0) {
 		state->toastSystem->addBigToast("SPEED UP!", glm::vec2{textX, textY});
-		state->entitySpawnSystem->setInterval(std::max(state->entitySpawnSystem->getInterval() - 1.0f, 1.5f));
-	} else if (comp->level % 4 == 0) {
+		auto currentInterval = state->entitySpawnSystem->getInterval();
+		float diff = 1.0f;
+		if (currentInterval <= 5.0f) {
+			diff = 0.5f;
+		}
+		state->entitySpawnSystem->setInterval(std::max(currentInterval - diff, 1.5f));
+	} else if (comp->level % 3 == 0) {
 		state->toastSystem->addBigToast("UPGRADE ADDED", glm::vec2{textX, textY});
 		auto upgrade = std::make_unique<ashley::Entity>();
 
 		if (state->rand() % 2 == 0) {
-			upgrade->add<PositionComponent>(0, 0);
+			upgrade->add<PositionComponent>(10, 10);
 			upgrade->add<RenderableComponent>(cardFront, speedUpgrade);
 			upgrade->add<ClickableComponent>(
 					SDL_Rect{0, 0, cardFront->getWidth(), cardFront->getHeight()});
@@ -44,7 +49,7 @@ void IntensificationSystem::processEntity(ashley::Entity *entity, float deltaTim
 											 speedUpgrade);
 			upgrade->add<CardComponent>();
 		} else {
-			upgrade->add<PositionComponent>(0, 0);
+			upgrade->add<PositionComponent>(10, 10);
 			upgrade->add<RenderableComponent>(cardFront, levelUpgrade);
 			upgrade->add<ClickableComponent>(
 					SDL_Rect{0, 0, cardFront->getWidth(), cardFront->getHeight()});
