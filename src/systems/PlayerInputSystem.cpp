@@ -1,7 +1,10 @@
+#include <cmath>
+
 #include <APG/graphics/Camera.hpp>
 #include <APG/input/SDLInputManager.hpp>
 
 #include "systems/PlayerInputSystem.hpp"
+#include "systems/ToastSystem.hpp"
 
 #include <easylogging++.h>
 
@@ -24,6 +27,9 @@ PlayerInputSystem::PlayerInputSystem(int64_t priority, APG::SDLInputManager *inp
 }
 
 void PlayerInputSystem::update(float deltaTime) {
+	if (state->timeToDraw > 0.0f) {
+		state->timeToDraw -= deltaTime;
+	}
 
 	mouseWorldX = inputManager->getMouseX();
 	mouseWorldY = inputManager->getMouseY();
@@ -62,7 +68,11 @@ bool PlayerInputSystem::processDrop(ashley::Entity *entity, PositionComponent *p
 	// entity is the _target_
 	const auto tower = towerMapper.get(entity);
 
-	if (tower != nullptr && !towerUpgradeMapper.has(entity)) {
+	if (tower != nullptr) {
+		if (towerUpgradeMapper.has(entity)) {
+			state->toastSystem->addToast("UPGRADE NOT FINISHED", position->position);
+			return false;
+		}
 		el::Loggers::getLogger("obelisk")->info("Card added to %v", tower->name);
 
 		auto carriedEntity = state->heldItem;
@@ -109,6 +119,12 @@ PlayerInputSystem::processPickup(ashley::Entity *entity, PositionComponent *posi
 
 	const auto deck = deckMapper.get(entity);
 	if (deck != nullptr) {
+		if (state->timeToDraw > 0.0f) {
+			const std::string toast = "COOLDOWN: " + std::to_string((int) std::floor(state->timeToDraw)) + " SECS";
+			state->toastSystem->addToast(toast, glm::vec2{mouseWorldX, mouseWorldY});
+			return true;
+		}
+
 		if (state->hand.size() >= 4) {
 			state->toastSystem->addToast("HAND ALREADY FULL", glm::vec2{mouseWorldX, mouseWorldY});
 			return true;
@@ -122,6 +138,7 @@ PlayerInputSystem::processPickup(ashley::Entity *entity, PositionComponent *posi
 		auto newCard = engine->addEntity(std::move(deck->cards.front()));
 		deck->cards.pop_front();
 		state->hand.push_back(newCard);
+		state->timeToDraw = state->drawCooldown;
 		return true;
 	}
 

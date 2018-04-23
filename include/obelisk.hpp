@@ -106,8 +106,7 @@ private:
 
 	std::unique_ptr<ObeliskMap> map;
 
-	ashley::Entity *upgradeDeck{nullptr};
-	ashley::Entity *weaponDeck{nullptr};
+	ashley::Entity *deck{nullptr};
 };
 
 }

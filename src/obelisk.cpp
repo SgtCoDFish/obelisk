@@ -34,6 +34,7 @@
 #include <systems/MovementSystem.hpp>
 #include <components/CarriedComponent.hpp>
 #include <components/CardComponent.hpp>
+#include <systems/IntensificationSystem.hpp>
 
 INITIALIZE_EASYLOGGINGPP
 #if defined (__EMSCRIPTEN__)
@@ -79,6 +80,8 @@ bool Obelisk::init() {
 	bigFont = fontManager->loadFontFile("assets/pixel_square.ttf", 40);
 
 	state->currentMap = map.get();
+	state->screenWidth = screenWidth;
+	state->screenHeight = screenHeight;
 
 	packAssets(logger);
 
@@ -194,46 +197,49 @@ void Obelisk::initECS(el::Logger *logger) {
 	const auto cardGapY = 5;
 
 	{
-		upgradeDeck = engine->addEntity();
-		upgradeDeck->add<PositionComponent>((screenWidth - cardGapX) * 2 - greenCardBack->getWidth(),
-											cardGapY);
-		upgradeDeck->add<RenderableComponent>(greenCardBack.get());
-		upgradeDeck->add<DeckComponent>();
-		upgradeDeck->add<ClickableComponent>(SDL_Rect{0, 0, greenCardBack->getWidth(), greenCardBack->getHeight()});
-		upgradeDeck->add<AnnotationComponent>(
-				fontManager->renderText(font, "UPGRADES", false, APG::FontRenderMethod::NICE));
+		deck = engine->addEntity();
+		deck->add<PositionComponent>((screenWidth - cardGapX) * 2 - redCardBack->getWidth(),
+									 cardGapY);
+		deck->add<RenderableComponent>(redCardBack.get());
+		deck->add<DeckComponent>();
+		deck->add<ClickableComponent>(SDL_Rect{0, 0, redCardBack->getWidth(), redCardBack->getHeight()});
+		deck->add<AnnotationComponent>(
+				fontManager->renderText(font, "UPGRADES", false, APG::FontRenderMethod::NICE), true);
 
-		weaponDeck = engine->addEntity();
-		weaponDeck->add<PositionComponent>(
-				(screenWidth - 2 * cardGapX) * 2 - greenCardBack->getWidth() * 2,
-				cardGapY);
-		weaponDeck->add<RenderableComponent>(blueCardBack.get());
-		weaponDeck->add<DeckComponent>();
-		weaponDeck->add<ClickableComponent>(SDL_Rect{0, 0, blueCardBack->getWidth(), blueCardBack->getHeight()});
-		weaponDeck->add<AnnotationComponent>(
-				fontManager->renderText(font, "WEAPONS", false, APG::FontRenderMethod::NICE));
+		state->upgradeDeck = deck;
 
-		auto upgradeDeckComponent = upgradeDeck->getComponent<DeckComponent>();
-		auto weaponDeckComponent = weaponDeck->getComponent<DeckComponent>();
+		auto deckComponent = deck->getComponent<DeckComponent>();
 
-		auto displayedCard1 = std::make_unique<ashley::Entity>();
-		displayedCard1->add<PositionComponent>(cardGapX, cardGapY);
-		displayedCard1->add<RenderableComponent>(redCardFront.get(), gunUpgradeSprite.get());
-		displayedCard1->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
-		displayedCard1->add<CarryableComponent>(smallRedCardBack.get(), UpgradeType::TOWER_GUN_UPGRADE,
-												gunUpgradeSprite.get());
-		displayedCard1->add<CardComponent>();
+		auto gunCard1 = engine->addEntity();
+		gunCard1->add<PositionComponent>(cardGapX, cardGapY);
+		gunCard1->add<RenderableComponent>(blueCardFront.get(), gunUpgradeSprite.get());
+		gunCard1->add<ClickableComponent>(SDL_Rect{0, 0, blueCardFront->getWidth(), blueCardFront->getHeight()});
+		gunCard1->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_GUN_UPGRADE,
+										  gunUpgradeSprite.get());
+		gunCard1->add<CardComponent>();
 
-		auto displayedCard2 = std::make_unique<ashley::Entity>();
-		displayedCard2->add<PositionComponent>(cardGapX * 2 + blueCardFront->getWidth(), cardGapY);
-		displayedCard2->add<RenderableComponent>(blueCardFront.get(), rocketUpgradeSprite.get());
-		displayedCard2->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
-		displayedCard2->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_ROCKET_UPGRADE,
-												rocketUpgradeSprite.get());
-		displayedCard2->add<CardComponent>();
+		state->hand.emplace_back(gunCard1);
+
+		auto gunCard2 = std::make_unique<ashley::Entity>();
+		gunCard2->add<PositionComponent>(cardGapX, cardGapY);
+		gunCard2->add<RenderableComponent>(blueCardFront.get(), gunUpgradeSprite.get());
+		gunCard2->add<ClickableComponent>(SDL_Rect{0, 0, blueCardFront->getWidth(), blueCardFront->getHeight()});
+		gunCard2->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_GUN_UPGRADE,
+										  gunUpgradeSprite.get());
+		gunCard2->add<CardComponent>();
+
+		auto rocketCard1 = std::make_unique<ashley::Entity>();
+		rocketCard1->add<PositionComponent>(cardGapX * 2 + blueCardFront->getWidth(), cardGapY);
+		rocketCard1->add<RenderableComponent>(blueCardFront.get(), rocketUpgradeSprite.get());
+		rocketCard1->add<ClickableComponent>(SDL_Rect{0, 0, redCardFront->getWidth(), redCardFront->getHeight()});
+		rocketCard1->add<CarryableComponent>(smallBlueCardBack.get(), UpgradeType::TOWER_ROCKET_UPGRADE,
+											 rocketUpgradeSprite.get());
+		rocketCard1->add<CardComponent>();
 
 		// Add upgrade cards to deck
-		std::vector<std::unique_ptr<ashley::Entity>> upgradeEntities;
+		std::vector<std::unique_ptr<ashley::Entity>> cardEntities;
+		cardEntities.emplace_back(std::move(gunCard2));
+		cardEntities.emplace_back(std::move(rocketCard1));
 		for (int i = 0; i < 4; ++i) {
 			auto levelUpgrade = std::make_unique<ashley::Entity>();
 			levelUpgrade->add<PositionComponent>(cardGapX * 3 + greenCardFront->getWidth() * 2, cardGapY);
@@ -244,30 +250,42 @@ void Obelisk::initECS(el::Logger *logger) {
 												  plusUpgradeSprite.get());
 			levelUpgrade->add<CardComponent>();
 
-			upgradeEntities.emplace_back(std::move(levelUpgrade));
+			cardEntities.emplace_back(std::move(levelUpgrade));
 		}
 
 		for (int i = 0; i < 3; ++i) {
-			auto levelUpgrade = std::make_unique<ashley::Entity>();
-			levelUpgrade->add<PositionComponent>(cardGapX * 3 + greenCardFront->getWidth() * 2, cardGapY);
-			levelUpgrade->add<RenderableComponent>(greenCardFront.get(), speedUpgradeSprite.get());
-			levelUpgrade->add<ClickableComponent>(
+			auto speedUpgrade = std::make_unique<ashley::Entity>();
+			speedUpgrade->add<PositionComponent>(cardGapX * 3 + greenCardFront->getWidth() * 2, cardGapY);
+			speedUpgrade->add<RenderableComponent>(greenCardFront.get(), speedUpgradeSprite.get());
+			speedUpgrade->add<ClickableComponent>(
 					SDL_Rect{0, 0, greenCardFront->getWidth(), greenCardFront->getHeight()});
-			levelUpgrade->add<CarryableComponent>(smallGreenCardBack.get(), UpgradeType::SPEED,
+			speedUpgrade->add<CarryableComponent>(smallGreenCardBack.get(), UpgradeType::SPEED,
 												  speedUpgradeSprite.get());
-			levelUpgrade->add<CardComponent>();
+			speedUpgrade->add<CardComponent>();
 
-			upgradeEntities.emplace_back(std::move(levelUpgrade));
+			cardEntities.emplace_back(std::move(speedUpgrade));
 		}
 
-		std::shuffle(upgradeEntities.begin(), upgradeEntities.end(), state->rand);
+		bool shuffledBadly = true;
+		while (shuffledBadly) {
+			std::shuffle(cardEntities.begin(), cardEntities.end(), state->rand);
 
-		for (auto &e : upgradeEntities) {
-			upgradeDeckComponent->cards.emplace_front(std::move(e));
+			for (int i = 0; i < (int) cardEntities.size(); ++i) {
+				if (i >= 1) {
+					break;
+				}
+
+				auto carryable = cardEntities[i]->getComponent<CarryableComponent>();
+				if (carryable->upgradeType == UpgradeType::TOWER_GUN_UPGRADE ||
+					carryable->upgradeType == UpgradeType::TOWER_ROCKET_UPGRADE) {
+					shuffledBadly = false;
+				}
+			}
 		}
 
-		weaponDeckComponent->cards.emplace_front(std::move(displayedCard1));
-		weaponDeckComponent->cards.emplace_front(std::move(displayedCard2));
+		for (auto &e : cardEntities) {
+			deckComponent->cards.emplace_front(std::move(e));
+		}
 	}
 
 	{
@@ -281,17 +299,19 @@ void Obelisk::initECS(el::Logger *logger) {
 		trashEntity->add(std::move(trashRenderable));
 	}
 
-	engine->addSystem<EntitySpawnSystem>(
-			500, 10.0f, state.get(),
+	engine->addSystem<IntensificationSystem>(100, state, speedUpgradeSprite.get(), plusUpgradeSprite.get(),
+											 greenCardFront.get(), smallGreenCardBack.get());
+	state->entitySpawnSystem = engine->addSystem<EntitySpawnSystem>(
+			500, 17.5f, state.get(),
 			std::vector<APG::SpriteBase *>(
 					{giraffe.get(), monkey.get(), rabbit.get(), snake.get(), pig.get()}
 			),
 			std::vector<MonsterStats>(
-					{MonsterStats{16, 2.0f}, MonsterStats{8, 0.75f}, MonsterStats{5, 0.5f}, MonsterStats{13, 1.0f},
-					 MonsterStats{20, 2.5f}
+					{MonsterStats{18, 2.0f}, MonsterStats{9, 0.85f}, MonsterStats{4, 0.6f}, MonsterStats{14, 1.2f},
+					 MonsterStats{25, 3.0f}
 					})
 	);
-	engine->addSystem<RenderSystem>(spriteBatch.get(), 1000);
+	engine->addSystem<RenderSystem>(spriteBatch.get(), 1000, fontManager.get(), font);
 	engine->addSystem<CarrySystem>(inputManager.get(), 2500);
 	engine->addSystem<WalkingSystem>(3500, state);
 	playerInputSystem = engine->addSystem<PlayerInputSystem>(5000, inputManager.get(), camera.get(), state);
@@ -299,7 +319,7 @@ void Obelisk::initECS(el::Logger *logger) {
 										  constructionOverlay.get());
 	engine->addSystem<TowerAttackSystem>(15000, gunAttackSprite.get(), rocketAttackSprite.get());
 	engine->addSystem<MovementSystem>(17500);
-	state->toastSystem = engine->addSystem<ToastSystem>(20000, fontManager.get(), font);
+	state->toastSystem = engine->addSystem<ToastSystem>(20000, fontManager.get(), font, bigFont);
 	engine->addSystem<DeathSystem>(1000000, state);
 }
 

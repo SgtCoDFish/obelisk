@@ -4,11 +4,13 @@
 #include <cstdint>
 #include <memory>
 
+#include <Ashley/core/ComponentMapper.hpp>
 #include <Ashley/systems/IteratingSystem.hpp>
 #include "ObeliskState.hpp"
 
 #include <components/CardComponent.hpp>
 #include <components/AttackComponent.hpp>
+#include <components/PositionComponent.hpp>
 
 #include "components/DeathComponent.hpp"
 

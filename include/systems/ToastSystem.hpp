@@ -13,9 +13,10 @@ namespace obelisk {
 
 class ToastSystem final : public ashley::IteratingSystem {
 public:
-	explicit ToastSystem(int64_t priority, APG::FontManager *fontManager, APG::FontManager::font_handle font);
+	explicit ToastSystem(int64_t priority, APG::FontManager *fontManager, APG::FontManager::font_handle font, APG::FontManager::font_handle bigFont);
 
 	void addToast(const std::string &text, glm::vec2 position);
+	void addBigToast(const std::string &text, glm::vec2 position);
 
 	void addedToEngine(ashley::Engine &engine) override;
 
@@ -26,6 +27,7 @@ public:
 private:
 	APG::FontManager *fontManager;
 	APG::FontManager::font_handle font;
+	APG::FontManager::font_handle bigFont;
 
 	ashley::Engine *engine{nullptr};
 

@@ -7,7 +7,9 @@
 #include <Ashley/core/Engine.hpp>
 #include <Ashley/core/Family.hpp>
 #include <components/MonsterComponent.hpp>
+#include <components/IntensificationComponent.hpp>
 #include "systems/DeathSystem.hpp"
+#include "systems/ToastSystem.hpp"
 #include "ObeliskState.hpp"
 
 namespace obelisk {
@@ -26,7 +28,7 @@ void DeathSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 
 	if (death->processAttack) {
 		auto attack = attackMapper.get(entity);
-		if (attack != nullptr && attack->target != nullptr) {
+		if (attack != nullptr && attack->target != nullptr && !attack->target->hasComponent<DeathComponent>()) {
 			auto monster = attack->target->getComponent<MonsterComponent>();
 			monster->hp -= attack->damage;
 
@@ -38,8 +40,9 @@ void DeathSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 				attack->target->add<DeathComponent>();
 				state->killCount += 1;
 
-				if (state->killCount % 5 == 0) {
-					//
+				if (state->killCount % 4 == 0) {
+					const auto intensifyEntity = getEngine()->addEntity();
+					intensifyEntity->add<IntensificationComponent>(state->killCount);
 				}
 			}
 		}

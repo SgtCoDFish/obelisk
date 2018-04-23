@@ -6,9 +6,10 @@
 
 namespace obelisk {
 
-ToastSystem::ToastSystem(int64_t priority, APG::FontManager *fontManager, APG::FontManager::font_handle fontHandle) :
+ToastSystem::ToastSystem(int64_t priority, APG::FontManager *fontManager, APG::FontManager::font_handle fontHandle,
+						 APG::FontManager::font_handle bigFontHandle) :
 		IteratingSystem(ashley::Family::getFor({typeid(PositionComponent), typeid(ToastComponent)}), priority),
-		fontManager{fontManager}, font{std::move(fontHandle)} {
+		fontManager{fontManager}, font{std::move(fontHandle)}, bigFont{std::move(bigFontHandle)} {
 }
 
 void ToastSystem::addToast(const std::string &text, glm::vec2 position) {
@@ -17,6 +18,16 @@ void ToastSystem::addToast(const std::string &text, glm::vec2 position) {
 	entity->add<PositionComponent>(position.x, position.y);
 	entity->add<ToastComponent>(text, 1.0f, position);
 	auto sprite = fontManager->renderText(font, text, true, APG::FontRenderMethod::NICE);
+
+	entity->add<RenderableComponent>(sprite);
+}
+
+void ToastSystem::addBigToast(const std::string &text, glm::vec2 position) {
+	auto entity = engine->addEntity();
+
+	entity->add<PositionComponent>(position.x, position.y);
+	entity->add<ToastComponent>(text, 1.0f, position);
+	auto sprite = fontManager->renderText(bigFont, text, true, APG::FontRenderMethod::NICE);
 
 	entity->add<RenderableComponent>(sprite);
 }
@@ -42,8 +53,8 @@ void ToastSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 	}
 
 	const auto targetPositionY = glm::mix(toast->initialPosition.y,
-										 toast->initialPosition.y - 25,
-										 (toast->duration - toast->timeRemaining) / toast->duration);
+										  toast->initialPosition.y - 25,
+										  (toast->duration - toast->timeRemaining) / toast->duration);
 
 	const auto pos = positionMapper.get(entity);
 	pos->position.y = targetPositionY;

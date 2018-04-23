@@ -28,6 +28,10 @@ void EntitySpawnSystem::removedFromEngine(ashley::Engine &engine) {
 }
 
 void EntitySpawnSystem::updateInterval() {
+	if (getInterval() > 10.0f) {
+		setInterval(10.0f);
+	}
+
 	auto newMonster = engine->addEntity();
 	auto renderer = state->currentMap->renderer.get();
 

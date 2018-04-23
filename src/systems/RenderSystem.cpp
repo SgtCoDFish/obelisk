@@ -1,14 +1,17 @@
 #include <Ashley/Ashley.hpp>
 #include <APG/graphics/SpriteBatch.hpp>
 #include <components/CarriedComponent.hpp>
+#include <components/DeckComponent.hpp>
 
 #include "systems/RenderSystem.hpp"
 
 namespace obelisk {
 
-RenderSystem::RenderSystem(APG::SpriteBatch *batch, int64_t priority) :
+RenderSystem::RenderSystem(APG::SpriteBatch *batch, int64_t priority, APG::FontManager *fontManager,
+						   APG::FontManager::font_handle font) :
 		IteratingSystem(ashley::Family::getFor({typeid(PositionComponent), typeid(RenderableComponent)}), priority),
-		batch{batch} {
+		batch{batch},
+		fontManager{fontManager}, font{font} {
 
 }
 
@@ -47,7 +50,19 @@ void RenderSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 
 		auto annotation = annotationMapper.get(entity);
 		if (annotation != nullptr) {
-			batch->draw(annotation->sprite, position->position.x,
+			if (annotation->showCount) {
+				auto deck = entity->getComponent<DeckComponent>();
+				if (deck != nullptr) {
+					const int count = static_cast<int>(deck->cards.size());
+					if (count != annotation->lastCount) {
+						annotation->lastCount = count;
+						const std::string text = std::to_string(count) + " CARDS";
+						annotation->sprite = fontManager->renderText(font, text, true, APG::FontRenderMethod::NICE);
+					}
+				}
+			}
+
+			batch->draw(annotation->sprite, position->position.x + 10,
 						position->position.y + renderable->sprite->getHeight() + 10);
 		}
 	}

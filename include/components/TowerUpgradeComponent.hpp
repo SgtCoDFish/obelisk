@@ -21,6 +21,7 @@ public:
 
 			case UpgradeType ::SPEED: {
 				timeRequired = 5.0f;
+				break;
 			}
 
 			case UpgradeType::TOWER_ROCKET_UPGRADE: {

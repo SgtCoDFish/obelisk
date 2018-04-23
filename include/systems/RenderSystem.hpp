@@ -6,6 +6,7 @@
 #include <Ashley/systems/IteratingSystem.hpp>
 #include <Ashley/core/ComponentMapper.hpp>
 #include <components/AnnotationComponent.hpp>
+#include <APG/font/FontManager.hpp>
 
 #include "components/ColorComponent.hpp"
 #include "components/PositionComponent.hpp"
@@ -19,7 +20,8 @@ namespace obelisk {
 
 class RenderSystem final : public ashley::IteratingSystem {
 public:
-	explicit RenderSystem(APG::SpriteBatch *batch, int64_t priority);
+	explicit RenderSystem(APG::SpriteBatch *batch, int64_t priority, APG::FontManager *fontManager,
+						  APG::FontManager::font_handle font);
 
 	void update(float deltaTime) override;
 
@@ -32,6 +34,9 @@ private:
 	ashley::ComponentMapper<RenderableComponent> renderableMapper = ashley::ComponentMapper<RenderableComponent>::getMapper();
 	ashley::ComponentMapper<ColorComponent> colorMapper = ashley::ComponentMapper<ColorComponent>::getMapper();
 	ashley::ComponentMapper<AnnotationComponent> annotationMapper = ashley::ComponentMapper<AnnotationComponent>::getMapper();
+
+	APG::FontManager *fontManager;
+	APG::FontManager::font_handle font;
 };
 
 }

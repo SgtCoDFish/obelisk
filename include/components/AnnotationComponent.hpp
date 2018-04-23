@@ -6,9 +6,12 @@
 
 class AnnotationComponent final : public ashley::Component {
 public:
-	explicit AnnotationComponent(APG::SpriteBase * sprite) : sprite{sprite} {}
+	explicit AnnotationComponent(APG::SpriteBase *sprite, bool showCount = false) : sprite{sprite},
+																					showCount{showCount} {}
 
-	APG::SpriteBase * sprite;
+	APG::SpriteBase *sprite;
+	bool showCount;
+	int lastCount{-1};
 };
 
 #endif

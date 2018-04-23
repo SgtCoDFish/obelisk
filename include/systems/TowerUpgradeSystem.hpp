@@ -6,6 +6,7 @@
 #include <Ashley/systems/IteratingSystem.hpp>
 #include <Ashley/core/ComponentMapper.hpp>
 #include <components/TowerComponent.hpp>
+#include <components/PositionComponent.hpp>
 #include <components/TowerUpgradeComponent.hpp>
 #include <components/RenderableComponent.hpp>
 

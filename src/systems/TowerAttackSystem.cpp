@@ -10,6 +10,7 @@
 #include <components/AttackComponent.hpp>
 #include <components/RenderableComponent.hpp>
 #include <components/MoveComponent.hpp>
+#include <components/TowerUpgradeComponent.hpp>
 
 namespace obelisk {
 
@@ -25,6 +26,10 @@ void TowerAttackSystem::processEntity(ashley::Entity *entity, float deltaTime) {
 	const auto tower = towerMapper.get(entity);
 
 	tower->timeToAttack -= deltaTime;
+
+	if (entity->hasComponent<TowerUpgradeComponent>()) {
+		return;
+	}
 
 	if (tower->timeToAttack <= 0.0f) {
 		doAttack(position, tower);
@@ -67,7 +72,7 @@ void TowerAttackSystem::doAttack(PositionComponent *position, TowerComponent *to
 	float moveDuration;
 	if (tower->upgradeType == UpgradeType::TOWER_ROCKET_UPGRADE) {
 		attackEntity->add<RenderableComponent>(rocketAttackSprite);
-		moveDuration = 3.5f;
+		moveDuration = 4.0f;
 		attackDamage = 6 + 2 * tower->level;
 	} else /*if(tower->upgradeType == UpgradeType::TOWER_GUN_UPGRADE)*/ {
 		attackEntity->add<RenderableComponent>(gunAttackSprite);
