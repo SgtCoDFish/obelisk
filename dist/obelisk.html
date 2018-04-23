@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>obelisk - Ludum Dare 41</title>
+    <link rel="stylesheet" href="obelisk.css"/>
+</head>
+
+<body>
+<div class="spinner" id='spinner'></div>
+<div class="emscripten" id="status">Downloading...</div>
+
+<div class="emscripten">
+    <progress value="0" max="100" id="progress" hidden="hidden"></progress>
+</div>
+
+
+<div class="emscripten_border">
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+</div>
+
+<span id='controls'>
+  <span><input type="button" value="Fullscreen" onclick="Module.requestFullscreen(false, false)">
+  </span>
+</span>
+<!--<textarea id="output" rows="8"></textarea>-->
+
+<script type='text/javascript' src="glue.js"></script>
+<script async type="text/javascript" src="obelisk.js"></script>
+</body>
+</html>

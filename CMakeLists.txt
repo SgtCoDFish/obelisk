@@ -116,10 +116,19 @@ else ()
     set(OS_LIBS "")
 endif ()
 
+set(OBELISK_DEBUG_LINKER_FLAGS "")
+set(OBELISK_RELEASE_LINKER_FLAGS "")
+
 if (NOT MSVC)
     set(COMPILER_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-unused-variable ${OS_FLAGS}")
     set(OBELISK_DEBUG_FLAGS "-g3 -O0")
     set(OBELISK_RELEASE_FLAGS "-g0 -O3")
+
+    if(EMSCRIPTEN)
+        set(OBELISK_DEBUG_FLAGS "${OBELISK_DEBUG_FLAGS} -s ASSERTIONS=1")
+        set(OBELISK_DEBUG_LINKER_FLAGS "-O0")
+        set(OBELISK_RELEASE_LINKER_FLAGS "-O2")
+    endif()
 else ()
     set(OBELISK_DEBUG_FLAGS "/Od /Gs")
     set(OBELISK_RELEASE_FLAGS "/Ox")
@@ -144,8 +153,10 @@ include_directories(
 
 if (OBELISK_DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_BASE} ${OBELISK_DEBUG_FLAGS}")
+    set(OBELISK_BASE_LINKER_FLAGS "${OBELISK_DEBUG_LINKER_FLAGS}")
 else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_BASE} ${OBELISK_RELEASE_FLAGS}")
+    set(OBELISK_BASE_LINKER_FLAGS "${OBELISK_DEBUG_LINKER_FLAGS}")
 endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${AUDIOTEST_FLAGS}")
@@ -163,9 +174,12 @@ set(PROJECT_LIBS ${SDL2_LIBRARY}
         )
 
 if (EMSCRIPTEN)
-    set(CMAKE_EXECUTABLE_SUFFIX ".html")
-    set(BASE_LINKER_FLAGS "${BASE_LINKER_FLAGS} -s ALLOW_MEMORY_GROWTH=1 -O2 --embed-file assets/towerDefense_tilesheet.png --embed-file assets/map.tmx --embed-file assets/trashcan.png --embed-file assets/vertex-es3.glslv --embed-file assets/frag-es3.glslf --embed-file assets/animals.png --embed-file assets/cards.png --embed-file assets/cards_small.png --embed-file assets/pixel_square.ttf")
+    # set(CMAKE_EXECUTABLE_SUFFIX ".html")
+    set(BASE_LINKER_FLAGS "${BASE_LINKER_FLAGS} ${OBELISK_BASE_LINKER_FLAGS} -s ALLOW_MEMORY_GROWTH=1 --embed-file assets/towerDefense_tilesheet.png --embed-file assets/map.tmx --embed-file assets/trashcan.png --embed-file assets/vertex-es3.glslv --embed-file assets/frag-es3.glslf --embed-file assets/animals.png --embed-file assets/cards.png --embed-file assets/cards_small.png --embed-file assets/pixel_square.ttf")
     set(CMAKE_EXE_LINKER_FLAGS "${BASE_LINKER_FLAGS}")
+    file(COPY ${CMAKE_SOURCE_DIR}/dist/obelisk.html DESTINATION ${CMAKE_BINARY_DIR})
+    file(COPY ${CMAKE_SOURCE_DIR}/dist/obelisk.css DESTINATION ${CMAKE_BINARY_DIR})
+    file(COPY ${CMAKE_SOURCE_DIR}/dist/glue.js DESTINATION ${CMAKE_BINARY_DIR})
 endif ()
 
 file(GLOB_RECURSE OBELISK_ASSETS ${PROJECT_SOURCE_DIR}/assets/*)
