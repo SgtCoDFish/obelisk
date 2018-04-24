@@ -1,7 +1,38 @@
 # Obelisk
-A tower-defence card game - theme "combine two incompatible genres"
+A tower-defence card game for Ludum Dare 41 ("combine two incompatible genres")
+
+Attempt to survive the hordes of enemies for 5 minutes to win. Let 3 through and you lose. It's absolutely possible to win, although victory can often be quite close!
+
+Be careful when playing upgrades (green cards) - towers can't attack while upgrading, but you'll succumb to the later waves if you don't upgrade enough!
+
+## Controls
+- Left click to pick up cards, draw cards and play cards on tower blocks. Note that you cannot drag and drop cards.
+- Right click to drop a card without playing.
+- If your hand is full, you can play a card on the trashcan to delete it and draw another card
+
+## About
+Obelisk is a combination of tower defence and a card game based upon the theme of "combining two incompatible genres"
+
+Draw cards, and play them to power up your defence. Manage your resources and defeat the attackers for as long as you can!
+
+All code was written for Ludum Dare 41.
+
+Obelisk was built using my own C++ game library APG and my ECS framework AshleyCPP, which were both created before Ludum Dare.
+
+The art is from Kenney.nl and was not created for the jam.
 
 ## Devlog
+### Day 3: 23-04-2018
+Both of my previous devlogs had an early segfault, and today wasn't much different. This time, it was a use-after-free in my ECS library, [AshleyCPP](https://github.com/SgtCoDFish/AshleyCPP/commit/40499bb878a647dac35ef38bf3b19052c8229927). I'm amazed that didn't blow up in a really obvious way a long time ago.
+
+Today was a mixture of a lot of everything and, as so often happens on the final day, a bit of a blur. I did consider distribution on native platforms, but in the end decided that HTML5/WebAssembly was good enough, and that's what I stuck with. Not having to deal with Visual Studio is a win in my books, too!
+
+As far as gameplay goes, I'm actually pleasently surprised with myself at how it turned out; whether that's more by luck or judgement I'm not sure. In the games I played and won, it was usually a nail-biter of a finish. That could potentially mean that the game's slightly too hard given I've got the advantage of having made the game, but I guess we'll see!
+
+Another big change today was "crushing" the game world so it would fit in a small itch.io window. I think making it smaller actually improved the feel of the game, too in a non-quantifiable way.
+
+I'm glad I participated, but after this and my 7DRL game, [ARDOR](https://github.com/SgtCoDFish/ardor) I definitely need a break from game dev for a while!
+
 ### Day 2: 22-04-2018
 The best way to start the morning was, I decided, to test the build on my macOS machine using clang, since I'd spent
 the first day entirely on Debian Stretch with gcc. This immediately highlighted a missing include, and then more urgently
@@ -36,7 +67,6 @@ integration.
 Another obvious choice was that since I was working alone, I'd be using whatever I could find for free in terms of
 sprites, fonts, graphics and music. [Kenney](http://kenney.nl/) was an excellent source of art, as ever.
 
-#### Day 1 Progress
 I didn't really get any gameplay in, which was sort of my goal. I anticipate I should have some actual game mechanics
 done by about halfway tomorrow, giving me about a day to polish and about half a day to prepare for distribution.
 
