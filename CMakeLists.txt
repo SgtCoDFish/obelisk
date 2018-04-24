@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 
-project(obelisk VERSION 0.9.0 LANGUAGES CXX)
+project(obelisk VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 14)
 
 message("Configuring ${PROJECT_NAME}-${PROJECT_VERSION}")

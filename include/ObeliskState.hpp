@@ -32,7 +32,7 @@ struct ObeliskState {
 
 	int killCount{0};
 
-	bool paused{true};
+	bool paused{false};
 
 	float drawCooldown{3.0f};
 	float timeToDraw{2.0f};

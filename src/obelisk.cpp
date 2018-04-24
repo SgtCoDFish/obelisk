@@ -174,7 +174,7 @@ void Obelisk::packAssets(el::Logger *logger) {
 
 	pausedText = fontManager->renderText(bigFont, "PRESS SPACE TO UNPAUSE", true, APG::FontRenderMethod::NICE);
 	victoryText = fontManager->renderText(bigFont, "YOU SURVIVED!", true, APG::FontRenderMethod::NICE);
-	victorySubText = fontManager->renderText(medFont, "SPACE TO KEEP PLAYING", true, APG::FontRenderMethod::NICE);
+	victorySubText = fontManager->renderText(medFont, "CLICK TO KEEP PLAYING", true, APG::FontRenderMethod::NICE);
 	failureText = fontManager->renderText(bigFont, "YOU DIED!", true, APG::FontRenderMethod::NICE);
 	failureSubText = fontManager->renderText(medFont, "REFRESH TO TRY AGAIN!", true, APG::FontRenderMethod::NICE);
 }
@@ -336,7 +336,7 @@ void Obelisk::render(float deltaTime) {
 	spriteBatch->setProjectionMatrix(camera->combinedMatrix);
 
 	if (elapsed > (60 * 4) && !resumeVictory) {
-		if (inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE)) {
+		if (inputManager->isKeyJustPressed(SDL_SCANCODE_SPACE) || inputManager->isLeftMousePressed()) {
 			resumeVictory = true;
 		} else {
 			spriteBatch->begin();

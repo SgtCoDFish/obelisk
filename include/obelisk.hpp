@@ -115,7 +115,7 @@ private:
 	int livesTextNum{-1};
 
 	std::unique_ptr<ObeliskMap> map;
-bool resumeVictory {false};
+	bool resumeVictory{false};
 	ashley::Entity *deck{nullptr};
 };
 
